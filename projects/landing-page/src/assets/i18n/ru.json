@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "Ввожу код",
+    "emptyInventory": "В данный момент у вас нет подарков для получения",
+    "bonusPoints": "{{value}} бонусных баллов",
+    "cashReward": "{{value}} в подарок",
+
+    "enterPromoCode": "Введите ваш код ваучера",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "ПОДТВЕРДИТЬ КОД",
+    "codeAccepted": "Код принят",
+    "invalidCode": "Недействительный код",
+    "errorValidatingCode": "Ошибка при проверке кода"
+  }
+}

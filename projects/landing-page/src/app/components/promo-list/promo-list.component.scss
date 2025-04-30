@@ -1,0 +1,216 @@
+@import '../../../assets/styles/theme';
+
+.promo-container {
+  width: 100%;
+  max-width: $app-width;
+  height: $app-height;
+  background-color: $dark-background;
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-main-view {
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: opacity 0.3s;
+  
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+ 
+  &::-webkit-scrollbar-track {
+    background: darken($dark-background, 5%);
+  }
+ 
+  &::-webkit-scrollbar-thumb {
+    background: lighten($background-color, 10%);
+    border-radius: 4px;
+  }
+}
+
+.promo-item {
+  display: flex;
+  align-items: center;
+  background-color: $background-color;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.2s;
+  height: 80px;
+  position: relative;
+  box-sizing: border-box;
+  transform: translateX(0);
+  transition: transform 0.5s ease-in-out;
+  
+  &.slide-left {
+    transform: translateX(-100%);
+  }
+  
+  &.animating {
+    animation: click-animation 0.8s ease forwards;
+  }
+  
+  &.manual-code {
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background-color: $joa-blue-light;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+  }
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 25px;
+ 
+  .circle-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    @include joa-blue-gradient;
+    color: white;
+    font-size: 24px;
+   
+    &.birthday-icon::before {
+      content: "🎂";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.cashback-icon::before {
+      content: "💰";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.bonus-icon::before {
+      content: "🎮";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.gift-icon::before {
+      content: "🎁";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.default-icon::before {
+      content: "📋";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+  }
+ 
+  .add-icon {
+    font-weight: bold;
+    font-size: 24px;
+  }
+}
+
+.promo-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ 
+  .promo-title {
+    color: white;
+    font-size: $text-medium;
+    font-weight: bold;
+    margin-right: 12px;
+  }
+ 
+  .promo-reward {
+    font-size: $text-medium;
+   
+    &.reward-credits {
+      color: $success-color;
+    }
+   
+    &.reward-cash {
+      color: $joa-blue-light;
+    }
+  }
+}
+
+.arrow-icon {
+  font-size: $text-medium;
+  color: $joa-blue-light;
+  margin-left: 12px;
+}
+
+.no-promo-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: $primary-color;
+  padding: 32px 16px;
+  text-align: center;
+  height: 200px;
+  transition: opacity 0.5s ease-in-out;
+ 
+  .question-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid $joa-blue-light;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: $text-medium;
+    margin-bottom: 16px;
+    color: $joa-blue-light;
+  }
+ 
+  p {
+    font-size: 32px;
+    margin: 0;
+  }
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+ 
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba($joa-blue-dark, 0.3);
+    border-radius: 50%;
+    border-top-color: $joa-blue-light;
+    animation: spin 1s ease-in-out infinite;
+  }
+}
+
+.error-message {
+  color: $error-color;
+  text-align: center;
+  padding: 16px;
+  font-size: 32px;
+}

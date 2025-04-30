@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "Ich gebe einen Code ein",
+    "emptyInventory": "Sie haben derzeit keine Geschenke zum Abholen",
+    "bonusPoints": "{{value}} Bonuspunkte",
+    "cashReward": "{{value}} geschenkt",
+
+    "enterPromoCode": "Geben Sie Ihren Gutscheincode ein",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "CODE BESTÄTIGEN",
+    "codeAccepted": "Code akzeptiert",
+    "invalidCode": "Ungültiger Code",
+    "errorValidatingCode": "Fehler bei der Codevalidierung"
+  }
+}

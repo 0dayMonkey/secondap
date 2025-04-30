@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import './assets/styles/theme';
+
+:root {
+  --primary-color: #{$primary-color};
+  --accent-color: #FF3722;
+  --warn-color: #{$warn-color};
+  --error-color: #{$error-color};
+  --success-color: #{$success-color};
+  --background-color: #{$background-color};
+  --dark-background: #{$dark-background};
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: $dark-background;
+  color: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-small {
+  font-size: $text-small;
+}
+
+.text-medium {
+  font-size: $text-medium;
+}
+
+.text-big {
+  font-size: $text-big;
+}
+
+.text-huge {
+  font-size: $text-huge;
+}
+
+.text-xhuge {
+  font-size: $text-xhuge;
+}
+
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: $text-medium;
+  transition: all 0.2s ease;
+  
+  &.standard-button {
+    background-color: white;
+    color: $dark-background;
+  }
+  
+  &.validate-button {
+    background-color: $success-color;
+    color: white;
+  }
+  
+  &.cancel-button {
+    background-color: $error-color;
+    color: white;
+  }
+  
+  &.button-active {
+    background-color: #FF3722;
+    color: white;
+    transform: scale(1.05);
+  }
+
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}

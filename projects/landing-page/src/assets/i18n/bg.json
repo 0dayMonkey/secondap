@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "Въвеждам код",
+    "emptyInventory": "В момента нямате подаръци за получаване",
+    "bonusPoints": "{{value}} бонус точки",
+    "cashReward": "{{value}} подарени",
+
+    "enterPromoCode": "Въведете вашия ваучер код",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "ПОТВЪРДЕТЕ КОДА",
+    "codeAccepted": "Кодът е приет",
+    "invalidCode": "Невалиден код",
+    "errorValidatingCode": "Грешка при валидиране на кода"
+  }
+}

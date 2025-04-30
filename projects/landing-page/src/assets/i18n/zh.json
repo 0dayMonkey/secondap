@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "输入代码",
+    "emptyInventory": "您目前没有可领取的礼品",
+    "bonusPoints": "{{value}} 奖励积分",
+    "cashReward": "{{value}} 赠送",
+
+    "enterPromoCode": "输入您的优惠券代码",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "验证代码",
+    "codeAccepted": "代码已接受",
+    "invalidCode": "无效代码",
+    "errorValidatingCode": "验证代码时出错"
+  }
+}

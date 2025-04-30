@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "코드 입력",
+    "emptyInventory": "현재 받을 수 있는 선물이 없습니다",
+    "bonusPoints": "{{value}} 보너스 포인트",
+    "cashReward": "{{value}} 제공",
+
+    "enterPromoCode": "바우처 코드를 입력하세요",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "코드 확인",
+    "codeAccepted": "코드가 승인되었습니다",
+    "invalidCode": "유효하지 않은 코드",
+    "errorValidatingCode": "코드 검증 중 오류가 발생했습니다"
+  }
+}

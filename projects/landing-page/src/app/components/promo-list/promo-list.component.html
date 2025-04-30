@@ -1,0 +1,63 @@
+<div class="promo-container">
+  <div class="promo-main-view" [class.hidden]="readyForPinCode">
+    <div class="promo-item manual-code" 
+         (click)="showEnterCodeScreen()"
+         [ngClass]="{'slide-left': animateItem(0)}">
+      <div class="icon-container">
+        <div class="circle-icon">
+          <span class="add-icon">+</span>
+        </div>
+      </div>
+      <div class="promo-content">
+        <span class="promo-title">{{"PromoList.enterCode" | translate}}</span>
+      </div>
+      <div class="arrow-icon">
+        <span>›</span>
+      </div>
+    </div>
+    
+    <div class="loader-container" *ngIf="isLoading">
+      <div class="spinner"></div>
+    </div>
+  
+    <div class="error-message" *ngIf="error">
+      <p>{{ error }}</p>
+    </div>
+  
+    <ng-container *ngIf="!isLoading && isCustomer && promotions.length > 0">
+      <div class="promo-item" 
+           *ngFor="let promo of promotions; let i = index" 
+           #promoElement
+           (click)="selectPromo(promo, promoElement)"
+           [ngClass]="{'slide-left': animateItem(i+1)}">
+        <div class="icon-container">
+          <div class="circle-icon" [ngClass]="getPromoIconClass(promo.promo_type)"></div>
+        </div>
+        <div class="promo-content">
+          <span class="promo-title">{{ promo.title }}</span>
+          <span class="promo-reward" [ngClass]="{'reward-credits': promo.reward_type === 'credits', 'reward-cash': promo.reward_type === 'cash'}">
+            {{ formatReward(promo) }}
+          </span>
+        </div>
+      </div>
+    </ng-container>
+  
+    <div class="no-promo-message" *ngIf="!isLoading && ((!isCustomer) || (isCustomer && promotions.length === 0))">
+      <div class="icon-container">
+        <div class="question-icon">?</div>
+      </div>
+      <p>{{"PromoList.emptyInventory" | translate}}</p>
+    </div>
+  </div>
+
+  <app-pin-code 
+    *ngIf="showPinCode"
+    [pinTitle]="'PromoList.enterPromoCode' | translate"
+    [placeholderText]="'PromoList.codeInputPlaceholder' | translate"
+    [validateButtonText]="'PromoList.validate' | translate"
+    [clearButtonText]="'C'"
+    (cancel)="hideEnterCodeScreen()"
+    (startExitAnimation)="prepareReturnAnimation()"
+    (validate)="validateEnteredCode($event)">
+  </app-pin-code>
+</div>

@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "コードを入力する",
+    "emptyInventory": "現在受け取れるギフトはありません",
+    "bonusPoints": "{{value}} ボーナスポイント",
+    "cashReward": "{{value}} 進呈",
+
+    "enterPromoCode": "バウチャーコードを入力してください",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "コードを確認する",
+    "codeAccepted": "コードが承認されました",
+    "invalidCode": "無効なコード",
+    "errorValidatingCode": "コードの検証中にエラーが発生しました"
+  }
+}

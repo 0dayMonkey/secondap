@@ -1,0 +1,15 @@
+{
+  "PromoList": {
+    "enterCode": "Introduzco un código",
+    "emptyInventory": "No tienes regalos para recoger en este momento",
+    "bonusPoints": "{{value}} puntos de bonificación",
+    "cashReward": "{{value}} ofrecidos",
+
+    "enterPromoCode": "Introduce tu código de cupón",
+    "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
+    "validate": "VALIDAR CÓDIGO",
+    "codeAccepted": "Código aceptado",
+    "invalidCode": "Código inválido",
+    "errorValidatingCode": "Error al validar el código"
+  }
+}
