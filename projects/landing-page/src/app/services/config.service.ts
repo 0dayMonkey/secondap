@@ -12,16 +12,6 @@ export class ConfigService {
   readonly viewTransitionDelay: number = 500; // ms
   readonly maxVisibleItemsForAnimation: number = 5;
   readonly clickAnimationDuration: number = 800; // ms
-  readonly colors = {
-    primaryColor: '#8B8C8E',
-    joaBlueDark: 'rgba(0, 70, 190, 1)',
-    joaBlueLight: 'rgba(0, 103, 223, 1)',
-    warnColor: '#FF9B00',
-    errorColor: '#FF5252',
-    successColor: '#5CAF50',
-    backgroundColor: '#303030',
-    darkBackground: '#222222',
-  };
 
   readonly dimensions = {
     containerWidth: '1280px',

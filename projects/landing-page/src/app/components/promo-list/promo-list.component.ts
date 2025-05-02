@@ -27,6 +27,7 @@ export class PromoListComponent implements OnInit {
   showPinCode = false;
   readyForPinCode = false;
   isExitingPinCode = false;
+  isReturnFromPinCode = false;
 
   @Input() mboxData!: MboxData;
 
@@ -103,7 +104,9 @@ export class PromoListComponent implements OnInit {
   }
 
   showEnterCodeScreen(): void {
-    this.startCodeEntryAnimation();
+    if (!this.showPinCode && !this.isExitingPinCode) {
+      this.startCodeEntryAnimation();
+    }
   }
 
   startCodeEntryAnimation(): void {
@@ -115,23 +118,40 @@ export class PromoListComponent implements OnInit {
 
         setTimeout(() => {
           this.readyForPinCode = true;
+
+          // Important : Assurez-vous qu'il y a suffisamment de délai pour terminer l'animation de sortie
           setTimeout(() => {
             this.showPinCode = true;
-          }, this.config.finalAnimationDelay / 8);
+          }, 50); // Un délai court est suffisant ici
         }, animationDelay);
       });
   }
 
   prepareReturnAnimation(): void {
-    this.isExitingPinCode = true;
-    this.readyForPinCode = false;
-    this.startReverseAnimation();
+    if (!this.isExitingPinCode) {
+      this.isExitingPinCode = true;
+      this.readyForPinCode = false;
+      this.startReverseAnimation();
+      this.isReturnFromPinCode = true;
+    }
   }
 
   hideEnterCodeScreen(): void {
-    this.showPinCode = false;
-    this.isExitingPinCode = false;
+    // D'abord, réinitialisez le readyForPinCode à false pour que la vue principale réapparaisse
+    this.readyForPinCode = false;
+
+    // Après un court délai, masquez complètement le pin-code
+    setTimeout(() => {
+      this.showPinCode = false;
+      this.isExitingPinCode = false;
+
+      // On réinitialise l'état de retour après un délai pour les animations futures
+      setTimeout(() => {
+        this.isReturnFromPinCode = false;
+      }, 1000); // Durée suffisante pour que l'animation soit visible
+    }, this.config.viewTransitionDelay);
   }
+
   startReverseAnimation(): void {
     this.animationService.resetAnimation();
     this.animationService.startReverseCascadeAnimation(this.promotions.length);

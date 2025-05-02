@@ -42,7 +42,9 @@
       </div>
     </ng-container>
   
-    <div class="no-promo-message" *ngIf="!isLoading && ((!isCustomer) || (isCustomer && promotions.length === 0))">
+    <div class="no-promo-message" 
+         *ngIf="!isLoading && ((!isCustomer) || (isCustomer && promotions.length === 0))"
+         [ngClass]="{'fade-in': isReturnFromPinCode}">
       <div class="icon-container">
         <div class="question-icon">?</div>
       </div>

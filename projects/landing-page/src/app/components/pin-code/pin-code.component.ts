@@ -56,16 +56,21 @@ export class PinCodeComponent {
   }
 
   goBack(): void {
-    const container = this.el.nativeElement.querySelector(
-      '.pin-code-container'
-    );
-    container.classList.add('slide-out');
+    if (!this.isExiting) {
+      this.isExiting = true;
 
-    this.startExitAnimation.emit();
+      const container = this.el.nativeElement.querySelector(
+        '.pin-code-container'
+      );
+      container.classList.add('slide-out');
 
-    setTimeout(() => {
-      this.cancel.emit();
-    }, this.config.viewTransitionDelay);
+      this.startExitAnimation.emit();
+
+      setTimeout(() => {
+        this.cancel.emit();
+        this.isExiting = false;
+      }, this.config.viewTransitionDelay);
+    }
   }
 
   isValidCode(): boolean {

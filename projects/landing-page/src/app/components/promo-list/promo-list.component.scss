@@ -16,6 +16,7 @@
   box-sizing: border-box;
   overflow-y: auto;
   transition: opacity 0.3s;
+  opacity: 1; /* Explicitement définir l'opacité initiale */
   
   &.hidden {
     opacity: 0;
@@ -50,6 +51,7 @@
   box-sizing: border-box;
   transform: translateX(0);
   transition: transform 0.5s ease-in-out;
+  
   
   &.slide-left {
     transform: translateX(-100%);
@@ -172,6 +174,7 @@
   text-align: center;
   height: 200px;
   transition: opacity 0.5s ease-in-out;
+  opacity: 1; // Commencer visible
  
   .question-icon {
     width: 60px;
@@ -190,6 +193,20 @@
     font-size: 32px;
     margin: 0;
   }
+}
+
+// Ajouter ces classes pour les animations de fondu
+.fade-out {
+  opacity: 0;
+}
+
+.fade-in {
+  animation: fade-in 0.5s forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .loader-container {

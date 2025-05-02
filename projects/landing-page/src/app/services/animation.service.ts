@@ -57,12 +57,10 @@ export class AnimationService {
       const itemsToAnimateIndividually =
         Math.min(totalItems - 1, maxVisibleItems) + 1;
 
-      // On initialise tous les items comme non-animés (donc visibles)
       for (let i = 0; i < totalItems; i++) {
         this.animatedItems[i] = false;
       }
 
-      // On anime seulement les X premiers éléments en cascade inverse
       for (let i = 0; i < itemsToAnimateIndividually; i++) {
         setTimeout(() => {
           if (i === 0) {

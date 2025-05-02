@@ -5,3 +5,7 @@ export interface MboxData {
   egmCode: string; // CommandConfigSMBDID
   casinoId: string; // ID du casino
 }
+
+export interface MboxInfo extends MboxData {
+  messageType: 'mbox-data';
+}

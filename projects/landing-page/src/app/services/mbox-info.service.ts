@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MboxData } from '../models/models';
+import { MboxData, MboxInfo } from '../models/models';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigService } from './config.service';
@@ -14,12 +14,12 @@ export class MboxInfoService {
     // twoLetterISOLanguageName: 'bg',
     twoLetterISOLanguageName: 'fr',
     // twoLetterISOLanguageName: 'zh',
-    // twoLetterISOLanguageName: 'es',
+    // twoLetterISOLanguageNamek: 'es',
     // twoLetterISOLanguageName: 'it',
 
-    // casinoCurrencySymbol: '€',
+    casinoCurrencySymbol: '€',
     // casinoCurrencySymbol: 'USD',
-    casinoCurrencySymbol: 'JPY',
+    // casinoCurrencySymbol: 'JPY',
     // casinoCurrencySymbol: '$',
     // casinoCurrencySymbol: 'EUR',
 
@@ -83,5 +83,11 @@ export class MboxInfoService {
 
   getLanguage(): string {
     return this.mboxDataObject.twoLetterISOLanguageName;
+  }
+
+  private receiveMessage(event: MessageEvent<MboxInfo>) {
+    if (event.data.messageType === 'mbox-data') {
+      this.updateMboxData(event.data);
+    }
   }
 }
