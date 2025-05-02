@@ -1,0 +1,33 @@
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientModule } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { WidgetComponent } from './components/widget/widget.component';
+
+import { NotificationService } from './services/notification.service';
+import { CommunicationService } from './services/communication.service';
+import { ConfigService } from './services/config.service';
+import { MboxInfoService } from './services/mbox-info.service';
+
+@NgModule({
+  declarations: [AppComponent, WidgetComponent],
+  imports: [
+    BrowserModule,
+    CommonModule,
+    MatIconModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+  ],
+  providers: [
+    NotificationService,
+    CommunicationService,
+    ConfigService,
+    MboxInfoService,
+  ],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}

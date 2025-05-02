@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start:landing": "ng serve landing-page",
-    "start:widget": "ng serve widget",
+    "start:widget": "ng serve widget --port 4222",
     "build": "ng build landing-page",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

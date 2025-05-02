@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: transparent;
+}
+
+/* Variables for consistency with landing-page */
+:root {
+  --joa-blue-light: rgba(0, 103, 223, 1);
+  --joa-blue-dark: rgba(0, 70, 190, 1);
+  --warn-color: #FF9B00;
+  --error-color: #FF5252;
+  --success-color: #5CAF50;
+}
