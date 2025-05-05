@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
-import { Promotion } from './promo.service';
+import { Promotion } from '../../../../common/models/common.models';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
 import { ConfigService } from 'projects/common/services/config.service';
 

@@ -1,56 +1,28 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MboxInfoService } from '../../../../common/services/mbox-info.service';
-import { ConfigService } from 'projects/common/services/config.service';
-
-export interface Promotion {
-  id: number;
-  code: string;
-  title: string;
-  reward_type: 'credits' | 'cash';
-  reward_value: number;
-  promo_type: string;
-}
-
-export interface PlayerStatus {
-  isCustomer: boolean;
-  message: string;
-}
-
-export interface PromoResponse {
-  data: Promotion[];
-  message: string;
-}
+import {
+  Promotion,
+  PlayerStatus,
+  PromoResponse,
+} from '../../../../common/models/common.models';
+import { ApiService } from '../../../../common/services/api.service';
 
 @Injectable()
 export class PromoService {
-  constructor(
-    private http: HttpClient,
-    private mboxService: MboxInfoService,
-    private config: ConfigService
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   getPlayerPromos(): Observable<PromoResponse> {
-    const playerId = this.mboxService.getPlayerId();
-    return this.http.get<PromoResponse>(
-      this.config.getAPIPlayerPromosUrl(playerId)
-    );
+    return this.apiService.getPlayerPromos();
   }
 
   checkPlayerStatus(): Observable<PlayerStatus> {
-    const playerId = this.mboxService.getPlayerId();
-    return this.http.get<PlayerStatus>(
-      this.config.getAPIPlayerStatusUrl(playerId)
-    );
+    return this.apiService.checkPlayerStatus();
   }
 
   usePromo(promoId: number): Observable<{
     message: string;
   }> {
-    return this.http.put<{
-      message: string;
-    }>(this.config.getAPIPromoUseUrl(promoId), {});
+    return this.apiService.usePromo(promoId);
   }
 
   validatePromoCode(code: string): Observable<{
@@ -58,14 +30,6 @@ export class PromoService {
     message: string;
     promo?: Promotion;
   }> {
-    const playerId = this.mboxService.getPlayerId();
-    return this.http.post<{
-      valid: boolean;
-      message: string;
-      promo?: Promotion;
-    }>(this.config.getAPIPromoValidateUrl(), {
-      code,
-      playerId,
-    });
+    return this.apiService.validatePromoCode(code);
   }
 }

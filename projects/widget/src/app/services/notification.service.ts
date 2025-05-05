@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from 'projects/common/services/config.service';
 import { MboxInfoService } from 'projects/common/services/mbox-info.service';
+import { ApiService } from 'projects/common/services/api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,8 @@ export class NotificationService implements OnDestroy {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
-    private mboxInfoService: MboxInfoService
+    private mboxInfoService: MboxInfoService,
+    private apiService: ApiService
   ) {
     this.fetchPromotionCount();
 
@@ -39,22 +41,17 @@ export class NotificationService implements OnDestroy {
       return;
     }
 
-    this.http
-      .get<any>(`${this.config.apiBaseUrl}/player/${playerId}/promos`)
-      .subscribe({
-        next: (response) => {
-          const promoCount = response.data ? response.data.length : 0;
-          this.notificationsSubject.next(promoCount);
-          console.log(`Promotions récupérées: ${promoCount}`);
-        },
-        error: (error) => {
-          console.error(
-            'Erreur lors de la récupération des promotions:',
-            error
-          );
-          this.notificationsSubject.next(0);
-        },
-      });
+    this.apiService.getPlayerPromos().subscribe({
+      next: (response) => {
+        const promoCount = response.data ? response.data.length : 0;
+        this.notificationsSubject.next(promoCount);
+        console.log(`Promotions récupérées: ${promoCount}`);
+      },
+      error: (error) => {
+        console.error('Erreur lors de la récupération des promotions:', error);
+        this.notificationsSubject.next(0);
+      },
+    });
   }
 
   public refreshPromotions(): void {

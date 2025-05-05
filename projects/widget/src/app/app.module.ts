@@ -13,6 +13,7 @@ import { CommunicationService } from './services/communication.service';
 
 import { ConfigService } from 'projects/common/services/config.service';
 import { MboxInfoService } from 'projects/common/services/mbox-info.service';
+import { ApiService } from 'projects/common/services/api.service';
 
 @NgModule({
   declarations: [AppComponent, WidgetComponent],
@@ -28,6 +29,7 @@ import { MboxInfoService } from 'projects/common/services/mbox-info.service';
     CommunicationService,
     ConfigService,
     MboxInfoService,
+    ApiService,
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

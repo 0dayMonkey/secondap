@@ -1,3 +1,15 @@
+export interface MboxData {
+  ownerId: string;
+  twoLetterISOLanguageName: string;
+  casinoCurrencySymbol: string;
+  egmCode: string;
+  casinoId: string;
+}
+
+export interface MboxInfo extends MboxData {
+  messageType: 'mbox-data';
+}
+
 export interface Promotion {
   id: number;
   code: string;

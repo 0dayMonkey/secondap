@@ -1,13 +1,13 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslationService } from '../../services/translation.service';
+import { PromoService } from '../../services/promo.service';
+import { catchError, of } from 'rxjs';
 import {
-  PromoService,
+  MboxData,
   Promotion,
   PlayerStatus,
-} from '../../services/promo.service';
-import { catchError, of } from 'rxjs';
-import { MboxData } from '../../models/models';
+} from '../../../../../common/models/common.models';
 import { FormattingService } from '../../services/formatting.service';
 import { AnimationService } from '../../services/animation.service';
 import { MboxInfoService } from '../../../../../common/services/mbox-info.service';

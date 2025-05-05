@@ -24,8 +24,8 @@ export class MboxInfoService {
     // ownerId: '0',
 
     // twoLetterISOLanguageName: 'bg',
-    twoLetterISOLanguageName: 'fr',
-    // twoLetterISOLanguageName: 'zh',
+    // twoLetterISOLanguageName: 'fr',
+    twoLetterISOLanguageName: 'zh',
     // twoLetterISOLanguageNamek: 'es',
     // twoLetterISOLanguageName: 'it',
 

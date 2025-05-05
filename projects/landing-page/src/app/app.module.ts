@@ -23,6 +23,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ConfigService } from '../../../common/services/config.service';
 import { MboxInfoService } from '../../../common/services/mbox-info.service';
+import { ApiService } from '../../../common/services/api.service';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -60,6 +61,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     PinCodeService,
     ConfigService,
     TranslationService,
+    ApiService,
     CurrencyPipe,
   ],
   bootstrap: [AppComponent],
