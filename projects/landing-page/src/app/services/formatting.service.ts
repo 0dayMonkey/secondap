@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { Promotion } from './promo.service';
-import { MboxInfoService } from './mbox-info.service';
+import { MboxInfoService } from '../../../../common/mbox-info.service';
 import { ConfigService } from './config.service';
 
 @Injectable()

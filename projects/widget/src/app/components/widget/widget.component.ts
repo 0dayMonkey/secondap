@@ -31,10 +31,7 @@ export class WidgetComponent implements OnInit, OnDestroy {
   }
 
   handleWidgetClick(): void {
-    console.log(
-      'Widget cliqué! Nombre de notifications:',
-      this.notificationCount
-    );
+    console.log('clique op, notif :', this.notificationCount);
 
     if (this.notificationCount > 0) {
       this.communicationService.navigateToLandingPage();

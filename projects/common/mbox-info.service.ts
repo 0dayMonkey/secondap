@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { MboxData, MboxInfo } from '../models/models';
+import { MboxData, MboxInfo } from '../landing-page/src/app/models/models';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from './config.service';
+import { ConfigService } from '../landing-page/src/app/services/config.service';
 
 @Injectable()
 export class MboxInfoService {
@@ -30,10 +29,7 @@ export class MboxInfoService {
   private mboxDataSubject = new BehaviorSubject<MboxData>(this.mboxDataObject);
   public mboxData$: Observable<MboxData> = this.mboxDataSubject.asObservable();
 
-  constructor(
-    private translateService: TranslateService,
-    private config: ConfigService
-  ) {}
+  constructor(private config: ConfigService) {}
 
   updateMboxData(data: Partial<MboxData>): void {
     this.mboxDataObject = {
@@ -55,11 +51,11 @@ export class MboxInfoService {
       this.mboxDataObject.twoLetterISOLanguageName?.toLowerCase() ||
       this.config.defaultLanguage;
 
-    if (this.config.supportedLanguages.includes(lang)) {
-      this.translateService.use(lang);
-    } else {
-      this.translateService.use(this.config.defaultLanguage);
-    }
+    // if (this.config.supportedLanguages.includes(lang)) {
+    //   this.translateService.use(lang);
+    // } else {
+    //   this.translateService.use(this.config.defaultLanguage);
+    // }
   }
 
   getPlayerId(): string {

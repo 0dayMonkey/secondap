@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import { WidgetComponent } from './components/widget/widget.component';
 import { NotificationService } from './services/notification.service';
 import { CommunicationService } from './services/communication.service';
 import { ConfigService } from './services/config.service';
-import { MboxInfoService } from './services/mbox-info.service';
+import { MboxInfoService } from 'projects/common/mbox-info.service';
 
 @NgModule({
   declarations: [AppComponent, WidgetComponent],
@@ -29,5 +29,6 @@ import { MboxInfoService } from './services/mbox-info.service';
     MboxInfoService,
   ],
   bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppModule {}

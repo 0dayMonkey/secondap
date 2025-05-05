@@ -126,13 +126,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular-devkit/build-angular:browser", 
           "options": {
             "outputPath": "dist/widget",
             "index": "projects/widget/src/index.html",
-            "browser": "projects/widget/src/main.ts",
+            "main": "projects/widget/src/main.ts",
             "polyfills": [
-              "projects/widget/src/polyfills.ts",
               "zone.js"
             ],
             "tsConfig": "projects/widget/tsconfig.app.json",
@@ -150,8 +149,7 @@
               "projects/widget/src/styles.scss"
             ],
             "scripts": []
-          },
-          "configurations": {
+          }, "configurations": {
             "production": {
               "budgets": [
                 {
@@ -197,7 +195,6 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "polyfills": [
-              "projects/widget/src/polyfills.ts",
               "zone.js",
               "zone.js/testing"
             ],

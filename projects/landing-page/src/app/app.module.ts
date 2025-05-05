@@ -15,7 +15,7 @@ import { TestComponent } from './components/test/test.component';
 import { routes } from './app.routes';
 
 import { PromoService } from './services/promo.service';
-import { MboxInfoService } from './services/mbox-info.service';
+import { MboxInfoService } from '../../../common/mbox-info.service';
 import { FormattingService } from './services/formatting.service';
 import { AnimationService } from './services/animation.service';
 import { PinCodeService } from './services/pin-code.service';

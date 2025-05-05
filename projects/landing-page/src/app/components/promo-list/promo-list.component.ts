@@ -10,7 +10,7 @@ import { catchError, of } from 'rxjs';
 import { MboxData } from '../../models/models';
 import { FormattingService } from '../../services/formatting.service';
 import { AnimationService } from '../../services/animation.service';
-import { MboxInfoService } from '../../services/mbox-info.service';
+import { MboxInfoService } from '../../../../../common/mbox-info.service';
 import { ConfigService } from '../../services/config.service';
 
 @Component({

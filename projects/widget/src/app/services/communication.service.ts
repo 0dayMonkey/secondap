@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MboxInfoService } from './mbox-info.service';
+import { MboxInfoService } from 'projects/common/mbox-info.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +18,9 @@ export class CommunicationService {
         },
         '*'
       );
-      console.log(`Message envoyé au parent: ${type}`, data);
+      console.log(`msg op: ${type}`, data);
     } catch (error) {
-      console.error("Erreur lors de l'envoi du message au parent:", error);
+      console.error('msg nop:', error);
     }
   }
 
@@ -34,9 +34,9 @@ export class CommunicationService {
         },
         '*'
       );
-      console.log('Navigation vers landing-page demandée');
+      console.log('nnavigation op');
     } catch (error) {
-      console.error('Erreur lors de la demande de navigation:', error);
+      console.error('navigation nop:', error);
     }
   }
 }
