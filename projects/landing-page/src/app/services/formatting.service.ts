@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { Promotion } from './promo.service';
-import { MboxInfoService } from '../../../../common/mbox-info.service';
-import { ConfigService } from './config.service';
+import { MboxInfoService } from '../../../../common/services/mbox-info.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 @Injectable()
 export class FormattingService {

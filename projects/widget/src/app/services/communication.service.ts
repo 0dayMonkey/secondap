@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MboxInfoService } from 'projects/common/mbox-info.service';
+import { MboxInfoService } from 'projects/common/services/mbox-info.service';
 
 @Injectable({
   providedIn: 'root',

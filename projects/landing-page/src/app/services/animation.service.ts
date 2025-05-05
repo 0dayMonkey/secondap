@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ConfigService } from './config.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 @Injectable()
 export class AnimationService {

@@ -15,12 +15,14 @@ import { TestComponent } from './components/test/test.component';
 import { routes } from './app.routes';
 
 import { PromoService } from './services/promo.service';
-import { MboxInfoService } from '../../../common/mbox-info.service';
 import { FormattingService } from './services/formatting.service';
 import { AnimationService } from './services/animation.service';
 import { PinCodeService } from './services/pin-code.service';
-import { ConfigService } from './services/config.service';
+import { TranslationService } from './services/translation.service';
 import { MatIconModule } from '@angular/material/icon';
+
+import { ConfigService } from '../../../common/services/config.service';
+import { MboxInfoService } from '../../../common/services/mbox-info.service';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -57,6 +59,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AnimationService,
     PinCodeService,
     ConfigService,
+    TranslationService,
     CurrencyPipe,
   ],
   bootstrap: [AppComponent],

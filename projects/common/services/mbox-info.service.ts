@@ -1,9 +1,22 @@
 import { Injectable } from '@angular/core';
-import { MboxData, MboxInfo } from '../landing-page/src/app/models/models';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ConfigService } from '../landing-page/src/app/services/config.service';
+import { ConfigService } from './config.service';
 
-@Injectable()
+export interface MboxData {
+  ownerId: string;
+  twoLetterISOLanguageName: string;
+  casinoCurrencySymbol: string;
+  egmCode: string;
+  casinoId: string;
+}
+
+export interface MboxInfo extends MboxData {
+  messageType: 'mbox-data';
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class MboxInfoService {
   public mboxDataObject: MboxData = {
     ownerId: '111111',
@@ -37,25 +50,11 @@ export class MboxInfoService {
       ...data,
     };
     this.mboxDataSubject.next(this.mboxDataObject);
-    this.updateLanguage();
   }
 
   setMboxData(data: MboxData): void {
     this.mboxDataObject = data;
     this.mboxDataSubject.next(this.mboxDataObject);
-    this.updateLanguage();
-  }
-
-  private updateLanguage(): void {
-    const lang =
-      this.mboxDataObject.twoLetterISOLanguageName?.toLowerCase() ||
-      this.config.defaultLanguage;
-
-    // if (this.config.supportedLanguages.includes(lang)) {
-    //   this.translateService.use(lang);
-    // } else {
-    //   this.translateService.use(this.config.defaultLanguage);
-    // }
   }
 
   getPlayerId(): string {

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MboxInfoService } from '../../../../../common/mbox-info.service';
+import { MboxInfoService } from '../../../../../common/services/mbox-info.service';
 
 @Component({
   selector: 'app-test',

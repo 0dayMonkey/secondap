@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { PinCodeService } from '../../services/pin-code.service';
-import { ConfigService } from '../../services/config.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 @Component({
   selector: 'app-pin-code',

@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-
+import { TranslationService } from '../../services/translation.service';
 import {
   PromoService,
   Promotion,
@@ -10,8 +10,8 @@ import { catchError, of } from 'rxjs';
 import { MboxData } from '../../models/models';
 import { FormattingService } from '../../services/formatting.service';
 import { AnimationService } from '../../services/animation.service';
-import { MboxInfoService } from '../../../../../common/mbox-info.service';
-import { ConfigService } from '../../services/config.service';
+import { MboxInfoService } from '../../../../../common/services/mbox-info.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 @Component({
   selector: 'app-promo-list',
@@ -34,6 +34,7 @@ export class PromoListComponent implements OnInit {
   constructor(
     private promoService: PromoService,
     private translate: TranslateService,
+    private translationService: TranslationService,
     private formatService: FormattingService,
     private animationService: AnimationService,
     private mboxInfoService: MboxInfoService,
@@ -119,10 +120,9 @@ export class PromoListComponent implements OnInit {
         setTimeout(() => {
           this.readyForPinCode = true;
 
-          // Important : Assurez-vous qu'il y a suffisamment de délai pour terminer l'animation de sortie
           setTimeout(() => {
             this.showPinCode = true;
-          }, 50); // Un délai court est suffisant ici
+          }, 50);
         }, animationDelay);
       });
   }
@@ -137,18 +137,15 @@ export class PromoListComponent implements OnInit {
   }
 
   hideEnterCodeScreen(): void {
-    // D'abord, réinitialisez le readyForPinCode à false pour que la vue principale réapparaisse
     this.readyForPinCode = false;
 
-    // Après un court délai, masquez complètement le pin-code
     setTimeout(() => {
       this.showPinCode = false;
       this.isExitingPinCode = false;
 
-      // On réinitialise l'état de retour après un délai pour les animations futures
       setTimeout(() => {
         this.isReturnFromPinCode = false;
-      }, 1000); // Durée suffisante pour que l'animation soit visible
+      }, 1000);
     }, this.config.viewTransitionDelay);
   }
 

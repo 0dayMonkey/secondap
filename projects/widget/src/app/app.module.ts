@@ -10,8 +10,9 @@ import { WidgetComponent } from './components/widget/widget.component';
 
 import { NotificationService } from './services/notification.service';
 import { CommunicationService } from './services/communication.service';
-import { ConfigService } from './services/config.service';
-import { MboxInfoService } from 'projects/common/mbox-info.service';
+
+import { ConfigService } from 'projects/common/services/config.service';
+import { MboxInfoService } from 'projects/common/services/mbox-info.service';
 
 @NgModule({
   declarations: [AppComponent, WidgetComponent],

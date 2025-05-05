@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MboxInfoService } from '../../../../common/mbox-info.service';
-import { ConfigService } from './config.service';
+import { MboxInfoService } from '../../../../common/services/mbox-info.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 export interface Promotion {
   id: number;

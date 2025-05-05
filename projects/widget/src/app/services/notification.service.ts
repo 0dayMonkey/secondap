@@ -1,8 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { ConfigService } from './config.service';
-import { MboxInfoService } from 'projects/common/mbox-info.service';
+import { ConfigService } from 'projects/common/services/config.service';
+import { MboxInfoService } from 'projects/common/services/mbox-info.service';
 
 @Injectable({
   providedIn: 'root',
