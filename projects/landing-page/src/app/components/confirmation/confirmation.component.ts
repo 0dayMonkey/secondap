@@ -32,6 +32,7 @@ export class ConfirmationComponent implements OnInit {
   };
 
   @Output() close = new EventEmitter<void>();
+  @Output() backToPinCode = new EventEmitter<void>();
 
   isSuccess: boolean = true;
   titleText: string = '';
@@ -142,10 +143,11 @@ export class ConfirmationComponent implements OnInit {
       const container = this.el.nativeElement.querySelector(
         '.confirmation-container'
       );
-      container.classList.remove('slide-in');
-      container.classList.add('slide-out');
+      container.classList.remove('fade-in');
+      container.classList.add('fade-out');
 
       setTimeout(() => {
+        this.backToPinCode.emit();
         this.close.emit();
         this.isExiting = false;
       }, this.config.viewTransitionDelay);

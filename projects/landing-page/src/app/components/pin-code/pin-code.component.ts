@@ -67,6 +67,7 @@ export class PinCodeComponent implements OnInit {
     }
 
     this.isLoading = true;
+    this.validate.emit(this.voucherCode);
 
     this.promoValidationService.validateCode(this.voucherCode).subscribe({
       next: (result: ValidationResult) => {
@@ -113,7 +114,7 @@ export class PinCodeComponent implements OnInit {
   }
 
   private exitWithConfirmation(result: ValidationResult): void {
-    this.goBack(true);
+    this.startExitAnimation.emit();
 
     setTimeout(() => {
       this.showConfirmation.emit(result);

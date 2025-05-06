@@ -10,9 +10,9 @@ export class ConfigService {
   readonly itemAnimationDelay: number = 50;
   readonly returnAnimationDelay: number = 10;
   readonly finalAnimationDelay: number = 400;
-  readonly viewTransitionDelay: number = 500;
+  readonly viewTransitionDelay: number = 350;
   readonly maxVisibleItemsForAnimation: number = 5;
-  readonly clickAnimationDuration: number = 800;
+  readonly clickAnimationDuration: number = 700;
 
   readonly supportedLanguages: string[] = [
     'fr',

@@ -103,7 +103,6 @@ export class PromoListComponent implements OnInit {
   }
 
   selectPromo(promo: Promotion, element: HTMLElement): void {
-    console.log('Promotion sélectionnée:', promo);
     this.animationService.applyClickAnimation(element);
   }
 
@@ -161,9 +160,7 @@ export class PromoListComponent implements OnInit {
     this.animationService.startReverseCascadeAnimation(this.promotions.length);
   }
 
-  validateEnteredCode(code: string): void {
-    console.log('Code validé:', code);
-  }
+  validateEnteredCode(code: string): void {}
 
   showConfirmationScreen(data: ValidationResult): void {
     this.confirmationData = data;
@@ -175,6 +172,10 @@ export class PromoListComponent implements OnInit {
   }
 
   hideConfirmationScreen(): void {
+    this.showConfirmation = false;
+  }
+
+  backToPinCodeFromConfirmation(): void {
     this.showConfirmation = false;
   }
 }

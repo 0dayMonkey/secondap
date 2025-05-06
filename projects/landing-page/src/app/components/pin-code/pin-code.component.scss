@@ -14,6 +14,7 @@
   overflow: hidden;
   transform: translateX(100%);
   animation: slide-from-right 0.5s forwards;
+  z-index: 5;
 }
 
 @keyframes slide-from-right {

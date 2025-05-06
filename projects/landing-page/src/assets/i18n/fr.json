@@ -4,27 +4,27 @@
     "emptyInventory": "Vous n'avez pas de cadeau à récupérer pour le moment",
     "bonusPoints": "{{value}} points bonus",
     "cashReward": "{{value}} offerts",
-
     "enterPromoCode": "Entrez votre code voucher",
     "codeInputPlaceholder": "XX-XXXX-XXXX-XXXX-XXXX",
     "validate": "VALIDER LE CODE",
     "codeAccepted": "Code accepté",
     "invalidCode": "Code invalide",
-    "errorValidatingCode": "Erreur lors de la validation du code"
+    "errorValidatingCode": "Erreur lors de la validation du code",
+    "returnButton": "RETOUR",
+    "back": "Retour"
   },
-
   "Confirmation": {
-      "successTitle": "Félicitations !",
-      "errorTitle": "Erreur",
-      "memberSuccessMessage": "{{reward}} ont été ajoutés {{rewardType}}.",
-      "nonMemberSuccessMessage": "{{reward}} ont été ajoutés {{rewardType}}.",
-      "balanceMessage": "Votre nouveau solde de {{rewardType}} est de {{balance}}.",
-      "memberRewardType": "à votre solde de points joueur",
-      "machineRewardType": "au crédit de la machine",
-      "pointsBalance": "points joueur",
-      "cashBalance": "crédit",
-      "genericError": "Une erreur inattendue s'est produite",
-      "errorMessage": "Erreur : {{error}}",
-      "returnButton": "RETOUR"
-    }
+    "successTitle": "Félicitations !",
+    "errorTitle": "Erreur",
+    "memberSuccessMessage": "{{reward}} ont été ajoutés {{rewardType}}.",
+    "nonMemberSuccessMessage": "{{reward}} ont été ajoutés {{rewardType}}.",
+    "balanceMessage": "Votre nouveau solde de {{rewardType}} est de {{balance}}.",
+    "memberRewardType": "à votre solde de points joueur",
+    "machineRewardType": "au crédit de la machine",
+    "pointsBalance": "points joueur",
+    "cashBalance": "crédit",
+    "genericError": "Une erreur inattendue s'est produite",
+    "errorMessage": "Erreur : {{error}}",
+    "returnButton": "RETOUR"
   }
+}

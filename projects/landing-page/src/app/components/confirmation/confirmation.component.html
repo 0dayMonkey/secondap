@@ -1,4 +1,4 @@
-<div class="confirmation-container" [ngClass]="{'slide-in': animationStarted}">
+<div class="confirmation-container" [ngClass]="{'fade-in': animationStarted}">
     <button class="back-button" (click)="goBack()" [title]="'PromoList.back' | translate">
       <mat-icon aria-hidden="true" class="backButtonIcon">arrow_back</mat-icon>
     </button>
@@ -19,9 +19,6 @@
         <p class="message">{{ messageText }}</p>
         <p class="sub-message" *ngIf="subMessageText">{{ subMessageText }}</p>
       </div>
-  
-      <button class="confirm-button" (click)="goBack()">
-        {{ 'PromoList.returnButton' | translate }}
-      </button>
+ 
     </div>
   </div>
