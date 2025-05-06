@@ -12,6 +12,7 @@ import { FormattingService } from '../../services/formatting.service';
 import { AnimationService } from '../../services/animation.service';
 import { MboxInfoService } from '../../../../../common/services/mbox-info.service';
 import { ConfigService } from 'projects/common/services/config.service';
+import { ValidationResult } from '../../services/promo-validation.service';
 
 @Component({
   selector: 'app-promo-list',
@@ -28,6 +29,12 @@ export class PromoListComponent implements OnInit {
   readyForPinCode = false;
   isExitingPinCode = false;
   isReturnFromPinCode = false;
+
+  showConfirmation = false;
+  confirmationData: ValidationResult = {
+    isSuccess: true,
+    isMember: true,
+  };
 
   @Input() mboxData!: MboxData;
 
@@ -156,5 +163,18 @@ export class PromoListComponent implements OnInit {
 
   validateEnteredCode(code: string): void {
     console.log('Code validé:', code);
+  }
+
+  showConfirmationScreen(data: ValidationResult): void {
+    this.confirmationData = data;
+    this.showConfirmation = true;
+
+    if (data.isSuccess) {
+      this.loadPromotions();
+    }
+  }
+
+  hideConfirmationScreen(): void {
+    this.showConfirmation = false;
   }
 }

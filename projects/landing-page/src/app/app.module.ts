@@ -11,6 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { AppComponent } from './app.component';
 import { PromoListComponent } from './components/promo-list/promo-list.component';
 import { PinCodeComponent } from './components/pin-code/pin-code.component';
+import { ConfirmationComponent } from './components/confirmation/confirmation.component';
 import { TestComponent } from './components/test/test.component';
 import { routes } from './app.routes';
 
@@ -18,6 +19,7 @@ import { PromoService } from './services/promo.service';
 import { FormattingService } from './services/formatting.service';
 import { AnimationService } from './services/animation.service';
 import { PinCodeService } from './services/pin-code.service';
+import { PromoValidationService } from './services/promo-validation.service';
 import { TranslationService } from './services/translation.service';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -34,6 +36,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AppComponent,
     PromoListComponent,
     PinCodeComponent,
+    ConfirmationComponent,
     TestComponent,
   ],
   imports: [
@@ -59,6 +62,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormattingService,
     AnimationService,
     PinCodeService,
+    PromoValidationService,
     ConfigService,
     TranslationService,
     ApiService,

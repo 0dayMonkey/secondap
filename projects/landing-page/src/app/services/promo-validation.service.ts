@@ -1,0 +1,88 @@
+import { Injectable } from '@angular/core';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { ApiService } from '../../../../common/services/api.service';
+import { MboxInfoService } from '../../../../common/services/mbox-info.service';
+
+export interface ValidationResult {
+  isSuccess: boolean;
+  isMember: boolean;
+  rewardValue?: number;
+  rewardType?: string;
+  newBalance?: number;
+  errorMessage?: string;
+  promoId?: number;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class PromoValidationService {
+  constructor(
+    private apiService: ApiService,
+    private mboxService: MboxInfoService
+  ) {}
+
+  validateCode(code: string): Observable<ValidationResult> {
+    return this.apiService.validatePromoCode(code).pipe(
+      map((response) => {
+        if (response.valid && response.promo) {
+          const isCustomer = this.mboxService.getPlayerId() !== '0';
+
+          return {
+            isSuccess: true,
+            isMember: isCustomer,
+            rewardValue: response.promo.reward_value,
+            rewardType: response.promo.reward_type,
+            newBalance: this.calculateNewBalance(
+              response.promo.reward_value,
+              response.promo.reward_type
+            ),
+            promoId: response.promo.id,
+          };
+        } else {
+          return {
+            isSuccess: false,
+            isMember: this.mboxService.getPlayerId() !== '0',
+            errorMessage: response.message,
+          };
+        }
+      }),
+      catchError((error) => {
+        return of({
+          isSuccess: false,
+          isMember: this.mboxService.getPlayerId() !== '0',
+          errorMessage: error.message || 'Erreur de connexion au serveur',
+        });
+      })
+    );
+  }
+
+  applyValidatedPromo(promoId: number): Observable<ValidationResult> {
+    if (!promoId) {
+      return throwError(() => new Error('ID de promotion invalide'));
+    }
+
+    return this.apiService.usePromo(promoId).pipe(
+      map((response) => {
+        return {
+          isSuccess: true,
+          isMember: this.mboxService.getPlayerId() !== '0',
+          message: response.message,
+        };
+      }),
+      catchError((error) => {
+        return of({
+          isSuccess: false,
+          isMember: this.mboxService.getPlayerId() !== '0',
+          errorMessage:
+            error.message || "Erreur lors de l'application de la promotion",
+        });
+      })
+    );
+  }
+
+  private calculateNewBalance(rewardValue: number, rewardType: string): number {
+    return rewardValue + 1000;
+  }
+}

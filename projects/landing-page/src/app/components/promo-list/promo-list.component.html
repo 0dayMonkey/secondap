@@ -1,5 +1,5 @@
 <div class="promo-container">
-  <div class="promo-main-view" [class.hidden]="readyForPinCode">
+  <div class="promo-main-view" [class.hidden]="readyForPinCode || showConfirmation">
     <div class="promo-item manual-code" 
          (click)="showEnterCodeScreen()"
          [ngClass]="{'slide-left': animateItem(0)}">
@@ -57,6 +57,5 @@
     [clearButtonText]="'C'"
     (cancel)="hideEnterCodeScreen()"
     (startExitAnimation)="prepareReturnAnimation()"
-    (validate)="validateEnteredCode($event)">
-  </app-pin-code>
-</div>
+    (validate)="validateEnteredCode($event)"
+    (showConfirmation)="showConfirmationScreen($event)">
