@@ -1,21 +1,17 @@
-$primary-color: #8B8C8E;
-$joa-blue-light: rgba(0, 103, 223, 1);
-$joa-blue-dark: rgba(0, 70, 190, 1);
+$primary-color: #7F8489;
+$accent-color: #FF5722; 
 $warn-color: #FF9B00;
-$error-color: #FF5252;
-$success-color: #5CAF50;
+$error-color: #FF2A52;
+$success-color: #4CA350;
 $background-color: #303030;
 $dark-background: #222222;
-@import 'material-icons/iconfont/material-icons.css';
-
 
 * {
-
   overflow: hidden;
 }
 
-@mixin joa-blue-gradient { //dégradé icon & bouton
-  background: linear-gradient(90deg, $joa-blue-dark 0%, $joa-blue-light 100%);
+@mixin accent-gradient {
+  background-color: $accent-color;
 }
 
 $text-small: 32px;
@@ -26,6 +22,9 @@ $text-xhuge: 76px;
 
 $app-width: 1280px;
 $app-height: 413px;
+
+$buttonSizeW: 25vh;
+$buttonSizeH: 25vh;
 
 @keyframes click-animation {
   0% {

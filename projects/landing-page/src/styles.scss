@@ -3,12 +3,14 @@
 
 :root {
   --primary-color: #{$primary-color};
-  --accent-color: #FF3722;
+  --accent-color: #{$accent-color};
   --warn-color: #{$warn-color};
   --error-color: #{$error-color};
   --success-color: #{$success-color};
   --background-color: #{$background-color};
   --dark-background: #{$dark-background};
+  --buttonColor: #{$accent-color};
+  --buttonOpacity: 1;
 }
 
 * {
@@ -20,12 +22,19 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: $dark-background;
+  background-color: $background-color;
   color: white;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
 
 .text-small {
@@ -48,6 +57,18 @@ body {
   font-size: $text-xhuge;
 }
 
+.text-small-spacing {
+  line-height: 110%;
+}
+
+.text-medium-spacing {
+  line-height: 130%;
+}
+
+.text-large-spacing {
+  line-height: 150%;
+}
+
 button {
   border: none;
   outline: none;
@@ -57,6 +78,8 @@ button {
   font-weight: 500;
   font-size: $text-medium;
   transition: all 0.2s ease;
+  white-space: pre-wrap !important;
+  line-height: 100% !important;
   
   &.standard-button {
     background-color: white;
@@ -74,13 +97,51 @@ button {
   }
   
   &.button-active {
-    background-color: #FF3722;
+    background-color: $accent-color;
     color: white;
     transform: scale(1.05);
   }
-
   
   &:active {
+    background-color: $accent-color;
     transform: scale(0.95);
   }
+}
+
+.static-btn {
+  width: $buttonSizeW;
+  height: $buttonSizeH;
+  line-height: 25vh;
+  text-align: center;
+  vertical-align: middle;
+  justify-content: center;
+  background-color: var(--buttonColor);
+  opacity: var(--buttonOpacity);
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex {
+  display: flex;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.validate-button-color {
+  background-color: rgb(108, 172, 71);
+}
+
+.cancel-button-color {
+  background-color: rgb(217, 4, 41);
 }

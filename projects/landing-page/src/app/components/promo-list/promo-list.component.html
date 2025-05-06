@@ -30,9 +30,6 @@
            #promoElement
            (click)="selectPromo(promo, promoElement)"
            [ngClass]="{'slide-left': animateItem(i+1)}">
-        <div class="icon-container">
-          <div class="circle-icon" [ngClass]="getPromoIconClass(promo.promo_type)"></div>
-        </div>
         <div class="promo-content">
           <span class="promo-title">{{ promo.title }}</span>
           <span class="promo-reward" [ngClass]="{'reward-credits': promo.reward_type === 'credits', 'reward-cash': promo.reward_type === 'cash'}">

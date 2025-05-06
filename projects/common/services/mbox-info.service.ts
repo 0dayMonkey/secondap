@@ -19,13 +19,13 @@ export interface MboxInfo extends MboxData {
 })
 export class MboxInfoService {
   public mboxDataObject: MboxData = {
-    ownerId: '111111',
-    // ownerId: 'YOHANN',
+    // ownerId: '111111',
+    ownerId: 'YOHANN',
     // ownerId: '0',
 
     // twoLetterISOLanguageName: 'bg',
-    // twoLetterISOLanguageName: 'fr',
-    twoLetterISOLanguageName: 'zh',
+    twoLetterISOLanguageName: 'fr',
+    // twoLetterISOLanguageName: 'zh',
     // twoLetterISOLanguageNamek: 'es',
     // twoLetterISOLanguageName: 'it',
 

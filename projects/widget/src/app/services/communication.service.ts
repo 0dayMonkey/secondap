@@ -31,12 +31,22 @@ export class CommunicationService {
           messageType: 'navigate',
           url: 'landing-page',
           ownerId: this.mboxInfoService.getPlayerId(),
+          // appName: name,
         },
         '*'
       );
-      console.log('nnavigation op');
+      console.log('navigation op');
     } catch (error) {
       console.error('navigation nop:', error);
     }
   }
 }
+
+/*
+window.parent.postMessage({
+                messageType: "navigate",
+                url: url,
+                appName: name,
+            }, '*')
+
+            */

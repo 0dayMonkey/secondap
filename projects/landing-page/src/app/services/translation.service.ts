@@ -36,7 +36,7 @@ export class TranslationService {
     }
   }
 
-  translate(key: string, params?: any): string {
-    return this.translateService.instant(key, params);
-  }
+  // translate(key: string, params?: any): string {
+  //   return this.translateService.instant(key, params);
+  // }
 }

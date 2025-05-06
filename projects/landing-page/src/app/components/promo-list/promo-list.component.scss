@@ -16,7 +16,7 @@
   box-sizing: border-box;
   overflow-y: auto;
   transition: opacity 0.3s;
-  opacity: 1; /* Explicitement définir l'opacité initiale */
+  opacity: 1;
   
   &.hidden {
     opacity: 0;
@@ -24,16 +24,7 @@
   }
   
   &::-webkit-scrollbar {
-    width: 8px;
-  }
- 
-  &::-webkit-scrollbar-track {
-    background: darken($dark-background, 5%);
-  }
- 
-  &::-webkit-scrollbar-thumb {
-    background: lighten($background-color, 10%);
-    border-radius: 4px;
+    display: none;
   }
 }
 
@@ -52,7 +43,6 @@
   transform: translateX(0);
   transition: transform 0.5s ease-in-out;
   
-  
   &.slide-left {
     transform: translateX(-100%);
   }
@@ -69,10 +59,14 @@
       top: 0;
       bottom: 0;
       width: 4px;
-      background-color: $joa-blue-light;
+      background-color: $accent-color;
       border-top-left-radius: 8px;
       border-bottom-left-radius: 8px;
     }
+  }
+  
+  &:active {
+    background-color: $accent-color;
   }
 }
 
@@ -89,7 +83,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    @include joa-blue-gradient;
+    background-color: $accent-color;
     color: white;
     font-size: 24px;
    
@@ -147,20 +141,21 @@
  
   .promo-reward {
     font-size: $text-medium;
+    
    
     &.reward-credits {
       color: $success-color;
     }
    
     &.reward-cash {
-      color: $joa-blue-light;
+      color: $primary-color;
     }
   }
 }
 
 .arrow-icon {
   font-size: $text-medium;
-  color: $joa-blue-light;
+  color: $accent-color;
   margin-left: 12px;
 }
 
@@ -174,19 +169,19 @@
   text-align: center;
   height: 200px;
   transition: opacity 0.5s ease-in-out;
-  opacity: 1; // Commencer visible
+  opacity: 1;
  
   .question-icon {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    border: 2px solid $joa-blue-light;
+    border: 2px solid $accent-color;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: $text-medium;
     margin-bottom: 16px;
-    color: $joa-blue-light;
+    color: $accent-color;
   }
  
   p {
@@ -195,7 +190,6 @@
   }
 }
 
-// Ajouter ces classes pour les animations de fondu
 .fade-out {
   opacity: 0;
 }
@@ -218,9 +212,9 @@
   .spinner {
     width: 50px;
     height: 50px;
-    border: 5px solid rgba($joa-blue-dark, 0.3);
+    border: 5px solid rgba($accent-color, 0.3);
     border-radius: 50%;
-    border-top-color: $joa-blue-light;
+    border-top-color: $accent-color;
     animation: spin 1s ease-in-out infinite;
   }
 }

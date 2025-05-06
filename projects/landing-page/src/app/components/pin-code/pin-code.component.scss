@@ -126,11 +126,9 @@
 
 .validate-button {
   padding: 15px;
-  @include joa-blue-gradient;
+  background-color: $accent-color;
   color: white;
   border: none;
-  border-radius: 35px;
-  font-size: 37px;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
@@ -151,6 +149,7 @@
   }
   
   &:active {
+    background-color: $accent-color;
     transform: scale(0.98);
   }
 }
@@ -172,7 +171,6 @@
 .numpad-key {
   width: 500px;
   height: 80px;
-  border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.1);
   border: none;
   display: flex;
@@ -189,12 +187,12 @@
   line-height: 100%;
   
   &:active {
-    background-color: $joa-blue-light;
+    background-color: $accent-color;
     transform: scale(0.98);
   }
   
   &.backspace {
-    color: $joa-blue-light;
+    color: $accent-color;
     
     .backspace-icon {
       font-size: 36px;
@@ -209,13 +207,11 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  @include joa-blue-gradient;
-
+  background-color: $accent-color;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white;
-
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s;
@@ -235,9 +231,7 @@
   }
 }
 
-
 .backButtonIcon {
-
   font-size: 40px;
   height: 40px;
   width: 40px;

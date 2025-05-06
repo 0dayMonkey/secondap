@@ -9,6 +9,8 @@
 html, body {
   height: 100%;
   overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 body {
@@ -16,11 +18,50 @@ body {
   background-color: transparent;
 }
 
-/* Variables for consistency with landing-page */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Variables matching the design system */
 :root {
-  --joa-blue-light: rgba(0, 103, 223, 1);
-  --joa-blue-dark: rgba(0, 70, 190, 1);
+  --primary-color: #7F8489;
+  --accent-color: #FF5722;
   --warn-color: #FF9B00;
-  --error-color: #FF5252;
-  --success-color: #5CAF50;
+  --error-color: #FF2A52;
+  --success-color: #4CA350;
+  --background-color: #303030;
+  --dark-background: #222222;
+}
+
+.text-small {
+  font-size: 32px;
+}
+
+.text-medium {
+  font-size: 36px;
+}
+
+.text-big {
+  font-size: 40px;
+}
+
+.text-huge {
+  font-size: 48px;
+}
+
+.text-xhuge {
+  font-size: 76px;
+}
+
+button {
+  white-space: pre-wrap !important;
+  line-height: 100% !important;
+}
+
+.button-active {
+  background-color: #FF5722;
+}
+
+button:active {
+  background-color: #FF5722;
 }
