@@ -98,6 +98,23 @@ export class PromoListComponent implements OnInit {
     return this.formatService.formatReward(promo);
   }
 
+  getUtilisationInfo(promo: Promotion): string {
+    if (!promo.utilisation) {
+      return '';
+    }
+
+    const { restantes, maximum } = promo.utilisation;
+
+    if (maximum === 1) {
+      return '';
+    }
+
+    return this.translate.instant('PromoList.utilisationInfo', {
+      restantes,
+      maximum,
+    });
+  }
+
   getPromoIconClass(promoType: string): string {
     return this.formatService.getPromoIconClass(promoType);
   }

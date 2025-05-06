@@ -129,7 +129,7 @@ export class ConfirmationComponent implements OnInit {
         id: 0,
         code: '',
         title: '',
-        reward_type: 'cash',
+        reward_type: 'Montant',
         reward_value: value,
         promo_type: '',
       });

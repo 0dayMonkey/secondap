@@ -15,7 +15,7 @@ export class FormattingService {
   ) {}
 
   formatReward(promo: Promotion): string {
-    if (promo.reward_type === 'credits') {
+    if (promo.reward_type === 'Point') {
       return this.translate.instant('PromoList.bonusPoints', {
         value: promo.reward_value,
       });
@@ -66,5 +66,22 @@ export class FormattingService {
       default:
         return 'default-icon';
     }
+  }
+
+  getUtilisationInfo(promo: Promotion): string {
+    if (!promo.utilisation) {
+      return '';
+    }
+
+    const { restantes, maximum } = promo.utilisation;
+
+    if (maximum === 1) {
+      return '';
+    }
+
+    return this.translate.instant('PromoList.utilisationInfo', {
+      restantes,
+      maximum,
+    });
   }
 }

@@ -32,8 +32,11 @@
            [ngClass]="{'slide-left': animateItem(i+1)}">
         <div class="promo-content">
           <span class="promo-title">{{ promo.title }}</span>
-          <span class="promo-reward" [ngClass]="{'reward-credits': promo.reward_type === 'credits', 'reward-cash': promo.reward_type === 'cash'}">
+          <span class="promo-reward" [ngClass]="{'reward-credits': promo.reward_type === 'Point', 'reward-cash': promo.reward_type === 'Montant'}">
             {{ formatReward(promo) }}
+          </span>
+          <span class="promo-utilisation" *ngIf="getUtilisationInfo(promo)">
+            {{ getUtilisationInfo(promo) }}
           </span>
         </div>
       </div>
