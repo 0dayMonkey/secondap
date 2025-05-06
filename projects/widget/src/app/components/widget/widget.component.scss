@@ -40,21 +40,3 @@
     height: 50px;
   }
 }
-
-.notification-badge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background-color: #FF2A52;
-  color: white;
-  border-radius: 50%;
-  min-width: 28px;
-  min-height: 28px;
-  font-size: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  font-weight: bold;
-}

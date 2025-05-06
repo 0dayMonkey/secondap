@@ -49,7 +49,7 @@ export class NotificationService implements OnDestroy {
         this.notificationsSubject.next(promoCount);
 
         if (promoCount > 0) {
-          showBadge(promoCount - 10);
+          showBadge(promoCount);
         } else {
           hideBadge();
         }

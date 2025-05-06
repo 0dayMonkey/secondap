@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MboxInfoService } from 'projects/common/services/mbox-info.service';
+import { navigateToOpenContentPage } from 'mbox-opencontent-sdk';
 
 @Injectable({
   providedIn: 'root',
@@ -26,27 +27,10 @@ export class CommunicationService {
 
   navigateToLandingPage(): void {
     try {
-      window.parent.postMessage(
-        {
-          messageType: 'navigate',
-          url: 'landing-page',
-          ownerId: this.mboxInfoService.getPlayerId(),
-          // appName: name,
-        },
-        '*'
-      );
+      navigateToOpenContentPage('JOA Stims', 'landing-page');
       console.log('navigation op');
     } catch (error) {
       console.error('navigation nop:', error);
     }
   }
 }
-
-/*
-window.parent.postMessage({
-                messageType: "navigate",
-                url: url,
-                appName: name,
-            }, '*')
-
-            */
