@@ -11,7 +11,8 @@
     "invalidCode": "Code invalide",
     "errorValidatingCode": "Erreur lors de la validation du code",
     "returnButton": "RETOUR",
-    "back": "Retour"
+    "back": "Retour",
+    "utilisationInfo": "{{restantes}}/{{maximum}} restants"
   },
   "Confirmation": {
     "successTitle": "Félicitations !",
@@ -24,7 +25,24 @@
     "pointsBalance": "points joueur",
     "cashBalance": "crédit",
     "genericError": "Une erreur inattendue s'est produite",
-    "errorMessage": "Erreur : {{error}}",
+    "errorMessage": "{{error}}",
     "returnButton": "RETOUR"
+  },
+  "Errors": {
+    "UNKNOWN_ERROR": "Une erreur inattendue s'est produite",
+    "API_COMMUNICATION_ERROR": "Impossible de communiquer avec le serveur",
+    "JOAPI_STIM_0001": "Cette promotion n'existe pas",
+    "JOAPI_STIM_0002": "Promotion non liée à un client",
+    "JOAPI_STIM_0003": "Client non autorisé pour cette promotion",
+    "JOAPI_STIM_0004": "Promotion déjà utilisée ou expirée",
+    "JOAPI_STIM_0005": "Promotion clôturée",
+    "JOAPI_STIM_0006": "Nombre maximum d'utilisations atteint",
+    "JOAPI_STIM_0007": "Promotion hors période de validité",
+    "JOAPI_STIM_0008": "Promotion non utilisable dans cet établissement",
+    "JOAPI_STIM_0009": "Délai entre utilisations non respecté",
+    "JOAPI_STIM_0011": "Établissement d'utilisation non spécifié",
+    "JOAPI_STIM_0012": "Promotion inutilisable, contactez le casino",
+    "JOAPI_STIM_0013": "Établissement de consommation inconnu",
+    "JOAPI_STIM_0017": "Promotion non utilisable sur cette machine"
   }
 }

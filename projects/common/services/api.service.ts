@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, map, throwError } from 'rxjs';
 import { ConfigService } from './config.service';
 import { MboxInfoService } from './mbox-info.service';
 import {
@@ -24,7 +24,23 @@ export class ApiService {
     const playerId = this.mboxService.getPlayerId();
     return this.http
       .get<Stim[]>(this.config.getAPIPlayerPromosUrl(playerId))
-      .pipe(map((stims) => this.mapStimsToPromotions(stims)));
+      .pipe(
+        map((stims) => this.mapStimsToPromotions(stims)),
+        catchError((error: HttpErrorResponse) => {
+          console.error(
+            'Erreur lors de la récupération des promotions:',
+            error
+          );
+          return throwError(() => ({
+            error: {
+              code: this.getErrorCodeFromResponse(error),
+              message:
+                error.message ||
+                'Erreur lors de la récupération des promotions',
+            },
+          }));
+        })
+      );
   }
 
   private mapStimsToPromotions(stims: Stim[]): PromoResponse {
@@ -58,20 +74,45 @@ export class ApiService {
   checkPlayerStatus(): Observable<PlayerStatus> {
     const playerId = this.mboxService.getPlayerId();
     //toujours un client, simulation pour l'instant
-    console.log(
-      "WARNING: SIMULATION POUR L'INSTANT, ADAPTER A L'API JOA POUR EFFECTUER UNE VERIFICATION - api.service.ts:59"
-    );
-    return this.http.get<PlayerStatus>(
-      this.config.getAPIPlayerStatusUrl(playerId)
-    );
+    return this.http
+      .get<PlayerStatus>(this.config.getAPIPlayerStatusUrl(playerId))
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error(
+            'Erreur lors de la vérification du statut du joueur:',
+            error
+          );
+          return throwError(() => ({
+            error: {
+              code: this.getErrorCodeFromResponse(error),
+              message:
+                error.message ||
+                'Erreur lors de la vérification du statut du joueur',
+            },
+          }));
+        })
+      );
   }
 
   usePromo(promoId: number): Observable<{
     message: string;
   }> {
-    return this.http.put<{
-      message: string;
-    }>(this.config.getAPIPromoUseUrl(promoId), {});
+    return this.http
+      .put<{
+        message: string;
+      }>(this.config.getAPIPromoUseUrl(promoId), {})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error("Erreur lors de l'utilisation de la promotion:", error);
+          return throwError(() => ({
+            error: {
+              code: this.getErrorCodeFromResponse(error),
+              message:
+                error.message || "Erreur lors de l'utilisation de la promotion",
+            },
+          }));
+        })
+      );
   }
 
   validatePromoCode(code: string): Observable<{
@@ -80,13 +121,52 @@ export class ApiService {
     promo?: Promotion;
   }> {
     const playerId = this.mboxService.getPlayerId();
-    return this.http.post<{
-      valid: boolean;
-      message: string;
-      promo?: Promotion;
-    }>(this.config.getAPIPromoValidateUrl(), {
-      code,
-      playerId,
-    });
+    return this.http
+      .post<{
+        valid: boolean;
+        message: string;
+        promo?: Promotion;
+      }>(this.config.getAPIPromoValidateUrl(), {
+        code,
+        playerId,
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Erreur lors de la validation du code promo:', error);
+          return throwError(() => ({
+            error: {
+              code: this.getErrorCodeFromResponse(error),
+              message:
+                error.message || 'Erreur lors de la validation du code promo',
+            },
+          }));
+        })
+      );
+  }
+
+  private getErrorCodeFromResponse(error: HttpErrorResponse): string {
+    if (error.status === 0) {
+      return 'API_COMMUNICATION_ERROR';
+    }
+
+    if (error.error && error.error.code) {
+      return error.error.code;
+    }
+
+    if (error.error && typeof error.error === 'string') {
+      try {
+        const parsedError = JSON.parse(error.error);
+        if (parsedError.code) {
+          return parsedError.code;
+        }
+      } catch (e) {
+        const match = error.error.match(/JOAPI_STIM_\d+/);
+        if (match) {
+          return match[0];
+        }
+      }
+    }
+
+    return 'UNKNOWN_ERROR';
   }
 }

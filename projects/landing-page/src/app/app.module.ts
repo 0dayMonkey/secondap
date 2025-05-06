@@ -1,3 +1,4 @@
+// projects/landing-page/src/app/app.module.ts - avec ErrorHandlingService ajouté
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
@@ -21,6 +22,7 @@ import { AnimationService } from './services/animation.service';
 import { PinCodeService } from './services/pin-code.service';
 import { PromoValidationService } from './services/promo-validation.service';
 import { TranslationService } from './services/translation.service';
+import { ErrorHandlingService } from './services/error-handler.service';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ConfigService } from '../../../common/services/config.service';
@@ -67,6 +69,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     TranslationService,
     ApiService,
     CurrencyPipe,
+    ErrorHandlingService,
   ],
   bootstrap: [AppComponent],
 })
