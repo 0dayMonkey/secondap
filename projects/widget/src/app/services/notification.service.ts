@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ConfigService } from 'projects/common/services/config.service';
 import { MboxInfoService } from 'projects/common/services/mbox-info.service';
 import { ApiService } from 'projects/common/services/api.service';
+import { showBadge, hideBadge } from 'mbox-opencontent-sdk';
 
 @Injectable({
   providedIn: 'root',
@@ -38,6 +39,7 @@ export class NotificationService implements OnDestroy {
 
     if (!playerId) {
       this.notificationsSubject.next(0);
+      hideBadge();
       return;
     }
 
@@ -45,11 +47,19 @@ export class NotificationService implements OnDestroy {
       next: (response) => {
         const promoCount = response.data ? response.data.length : 0;
         this.notificationsSubject.next(promoCount);
+
+        if (promoCount > 0) {
+          showBadge(promoCount - 10);
+        } else {
+          hideBadge();
+        }
+
         console.log(`Promotions récupérées: ${promoCount}`);
       },
       error: (error) => {
         console.error('Erreur lors de la récupération des promotions:', error);
         this.notificationsSubject.next(0);
+        hideBadge();
       },
     });
   }
@@ -60,6 +70,7 @@ export class NotificationService implements OnDestroy {
 
   public clearNotifications(): void {
     this.notificationsSubject.next(0);
+    hideBadge();
     console.log('Notifications réinitialisées');
   }
 }
