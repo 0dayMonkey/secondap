@@ -12,7 +12,11 @@ import { FormattingService } from '../../services/formatting.service';
 import { AnimationService } from '../../services/animation.service';
 import { MboxInfoService } from '../../../../../common/services/mbox-info.service';
 import { ConfigService } from 'projects/common/services/config.service';
-import { ValidationResult } from '../../services/promo-validation.service';
+import {
+  ValidationResult,
+  PromoValidationService,
+} from '../../services/promo-validation.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-promo-list',
@@ -45,7 +49,9 @@ export class PromoListComponent implements OnInit {
     private formatService: FormattingService,
     private animationService: AnimationService,
     private mboxInfoService: MboxInfoService,
-    private config: ConfigService
+    private config: ConfigService,
+    private promoValidationService: PromoValidationService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -53,6 +59,13 @@ export class PromoListComponent implements OnInit {
       this.mboxInfoService.setMboxData(this.mboxData);
     }
     this.loadPlayerData();
+
+    // Traitement des paramètres d'URL après redirection
+    this.route.queryParams.subscribe((params) => {
+      if (params['status']) {
+        this.handlePinAuthResult(params);
+      }
+    });
   }
 
   loadPlayerData(): void {
@@ -121,6 +134,76 @@ export class PromoListComponent implements OnInit {
 
   selectPromo(promo: Promotion, element: HTMLElement): void {
     this.animationService.applyClickAnimation(element);
+
+    // Demande d'authentification du joueur avec requestPlayerPin
+    const currentUrl = window.location.href.split('?')[0];
+    const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
+
+    this.promoValidationService.requestPlayerAuthentication({
+      promoId: promo.id,
+      urlOnSuccess: `${baseUrl}?status=success&promoId=${promo.id}`,
+      urlOnFailure: `${baseUrl}?status=failure&promoId=${promo.id}`,
+      urlOnError: `${baseUrl}?status=error&promoId=${promo.id}`,
+      customPayload: {
+        promoType: promo.promo_type,
+        rewardType: promo.reward_type,
+        rewardValue: promo.reward_value,
+      },
+    });
+  }
+
+  // Traiter les résultats de l'authentification par PIN
+  handlePinAuthResult(params: any): void {
+    const status = params['status'];
+    const promoId = parseInt(params['promoId'], 10);
+
+    if (status === 'success' && promoId) {
+      // Authentification réussie, applique la promotion
+      this.promoValidationService.applyValidatedPromo(promoId).subscribe({
+        next: (result) => {
+          if (result.isSuccess) {
+            this.showConfirmationScreen({
+              isSuccess: true,
+              isMember: true,
+              promoId: promoId,
+              rewardType: params['rewardType'] || 'Point',
+              rewardValue: parseInt(params['rewardValue'], 10) || 0,
+            });
+            this.loadPromotions();
+          } else {
+            this.showConfirmationScreen({
+              isSuccess: false,
+              isMember: true,
+              errorMessage: result.errorMessage,
+            });
+          }
+        },
+        error: (error) => {
+          this.showConfirmationScreen({
+            isSuccess: false,
+            isMember: true,
+            errorMessage:
+              error.message || "Erreur lors de l'application de la promotion",
+          });
+        },
+      });
+    } else if (status === 'failure') {
+      // Échec de l'authentification
+      this.showConfirmationScreen({
+        isSuccess: false,
+        isMember: true,
+        errorMessage:
+          'PIN invalide, impossible de vous identifier. Réessayez ultérieurement.',
+      });
+    } else if (status === 'error') {
+      // Erreur pendant l'authentification
+      this.showConfirmationScreen({
+        isSuccess: false,
+        isMember: true,
+        errorMessage:
+          "Erreur lors de l'authentification, réessayez ultérieurement.",
+      });
+    }
   }
 
   animateItem(index: number): boolean {

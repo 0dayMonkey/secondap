@@ -1,10 +1,10 @@
-// projects/landing-page/src/app/services/promo-validation.service.ts
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../../../common/services/api.service';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
 import { ErrorHandlingService, StimErrorCode } from './error-handler.service';
+import { requestPlayerPin } from 'mbox-opencontent-sdk';
 
 export interface ValidationResult {
   isSuccess: boolean;
@@ -14,6 +14,14 @@ export interface ValidationResult {
   newBalance?: number;
   errorMessage?: string;
   promoId?: number;
+}
+
+export interface PlayerAuthRequest {
+  promoId: number;
+  urlOnSuccess: string;
+  urlOnFailure: string;
+  urlOnError: string;
+  customPayload?: any;
 }
 
 @Injectable({
@@ -89,6 +97,21 @@ export class PromoValidationService {
         });
       })
     );
+  }
+
+  // Fonction pour demander l'authentification du joueur
+  requestPlayerAuthentication(authRequest: PlayerAuthRequest): void {
+    try {
+      requestPlayerPin({
+        appName: 'JOA MyPromo',
+        urlOnSuccess: authRequest.urlOnSuccess,
+        urlOnFailure: authRequest.urlOnFailure,
+        urlOnError: authRequest.urlOnError,
+        customPayload: authRequest.customPayload,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la demande d'authentification:", error);
+    }
   }
 
   private calculateNewBalance(rewardValue: number, rewardType: string): number {

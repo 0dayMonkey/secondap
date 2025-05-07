@@ -74,30 +74,27 @@ export class PinCodeComponent implements OnInit {
         this.isLoading = false;
 
         if (result.isSuccess && result.promoId) {
-          this.promoValidationService
-            .applyValidatedPromo(result.promoId)
-            .subscribe({
-              next: (applyResult: ValidationResult) => {
-                if (applyResult.isSuccess) {
-                  this.exitWithConfirmation(result);
-                } else {
-                  this.exitWithConfirmation({
-                    isSuccess: false,
-                    isMember: result.isMember,
-                    errorMessage: applyResult.errorMessage,
-                  });
-                }
-              },
-              error: (error) => {
-                this.exitWithConfirmation({
-                  isSuccess: false,
-                  isMember: result.isMember,
-                  errorMessage:
-                    error.message ||
-                    "Erreur lors de l'application de la promotion",
-                });
-              },
-            });
+          // Configuration des URLs pour l'authentification par PIN
+          const currentUrl = window.location.href.split('?')[0];
+          const baseUrl = currentUrl.endsWith('/')
+            ? currentUrl
+            : `${currentUrl}/`;
+
+          // Demande d'authentification du joueur
+          this.promoValidationService.requestPlayerAuthentication({
+            promoId: result.promoId,
+            urlOnSuccess: `${baseUrl}?status=success&promoId=${result.promoId}&rewardType=${result.rewardType}&rewardValue=${result.rewardValue}`,
+            urlOnFailure: `${baseUrl}?status=failure&promoId=${result.promoId}`,
+            urlOnError: `${baseUrl}?status=error&promoId=${result.promoId}`,
+            customPayload: {
+              code: this.voucherCode,
+              rewardType: result.rewardType,
+              rewardValue: result.rewardValue,
+            },
+          });
+
+          // Fermer l'écran de saisie du code promo
+          this.exitWithConfirmation(result);
         } else {
           this.exitWithConfirmation(result);
         }
