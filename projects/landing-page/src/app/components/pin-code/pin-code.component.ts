@@ -73,14 +73,14 @@ export class PinCodeComponent implements OnInit {
       next: (result: ValidationResult) => {
         this.isLoading = false;
 
+        console.log('Résultat de validation:', result);
+
         if (result.isSuccess && result.promoId) {
-          // Configuration des URLs pour l'authentification par PIN
           const currentUrl = window.location.href.split('?')[0];
           const baseUrl = currentUrl.endsWith('/')
             ? currentUrl
             : `${currentUrl}/`;
 
-          // Demande d'authentification du joueur
           this.promoValidationService.requestPlayerAuthentication({
             promoId: result.promoId,
             urlOnSuccess: `${baseUrl}?status=success&promoId=${result.promoId}&rewardType=${result.rewardType}&rewardValue=${result.rewardValue}`,
@@ -93,18 +93,26 @@ export class PinCodeComponent implements OnInit {
             },
           });
 
-          // Fermer l'écran de saisie du code promo
           this.exitWithConfirmation(result);
         } else {
           this.exitWithConfirmation(result);
         }
       },
       error: (error) => {
+        console.error('Erreur lors de la validation du code:', error);
         this.isLoading = false;
+
+        let errorMessage = 'Erreur de connexion au serveur';
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
         this.exitWithConfirmation({
           isSuccess: false,
           isMember: false,
-          errorMessage: error.message || 'Erreur de connexion au serveur',
+          errorMessage: errorMessage,
         });
       },
     });

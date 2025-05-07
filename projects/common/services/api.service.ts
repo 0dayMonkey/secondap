@@ -149,8 +149,17 @@ export class ApiService {
       return 'API_COMMUNICATION_ERROR';
     }
 
-    if (error.error && error.error.code) {
+    if (error.error && typeof error.error === 'object' && error.error.code) {
       return error.error.code;
+    }
+
+    if (
+      error.error &&
+      typeof error.error === 'object' &&
+      error.error.error &&
+      error.error.error.code
+    ) {
+      return error.error.error.code;
     }
 
     if (error.error && typeof error.error === 'string') {
@@ -159,6 +168,9 @@ export class ApiService {
         if (parsedError.code) {
           return parsedError.code;
         }
+        if (parsedError.error && parsedError.error.code) {
+          return parsedError.error.code;
+        }
       } catch (e) {
         const match = error.error.match(/JOAPI_STIM_\d+/);
         if (match) {
@@ -166,6 +178,15 @@ export class ApiService {
         }
       }
     }
+
+    if (error.message) {
+      const match = error.message.match(/JOAPI_STIM_\d+/);
+      if (match) {
+        return match[0];
+      }
+    }
+
+    console.warn("Code d'erreur non identifié:", error);
 
     return 'UNKNOWN_ERROR';
   }

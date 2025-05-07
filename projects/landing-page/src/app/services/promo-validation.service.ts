@@ -90,16 +90,24 @@ export class PromoValidationService {
         };
       }),
       catchError((error) => {
+        const errorCode =
+          error.error?.code || error.error?.error?.code || 'UNKNOWN_ERROR';
+        console.error(
+          "Erreur lors de l'application de la promotion:",
+          error,
+          'Code:',
+          errorCode
+        );
+
         return of({
           isSuccess: false,
           isMember: this.mboxService.getPlayerId() !== '0',
-          errorMessage: this.errorService.handleApiError(error),
+          errorMessage: this.errorService.getErrorMessage(errorCode),
         });
       })
     );
   }
 
-  // Fonction pour demander l'authentification du joueur
   requestPlayerAuthentication(authRequest: PlayerAuthRequest): void {
     try {
       requestPlayerPin({
