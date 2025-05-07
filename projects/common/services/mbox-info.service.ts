@@ -1,48 +1,57 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ConfigService } from './config.service';
-
-export interface MboxData {
-  ownerId: string;
-  twoLetterISOLanguageName: string;
-  casinoCurrencySymbol: string;
-  egmCode: string;
-  casinoId: string;
-}
-
-export interface MboxInfo extends MboxData {
-  messageType: 'mbox-data';
-}
+import { MboxData, MboxInfo } from '../models/common.models';
+import { onMboxDataMessage, GetInitialMboxInfo } from 'mbox-opencontent-sdk';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MboxInfoService {
   public mboxDataObject: MboxData = {
-    // ownerId: '111111',
-    ownerId: 'YOHANN',
-    // ownerId: '0',
-
-    // twoLetterISOLanguageName: 'bg',
-    twoLetterISOLanguageName: 'fr',
-    // twoLetterISOLanguageName: 'zh',
-    // twoLetterISOLanguageNamek: 'es',
-    // twoLetterISOLanguageName: 'it',
-
-    casinoCurrencySymbol: '€',
-    // casinoCurrencySymbol: 'USD',
-    // casinoCurrencySymbol: 'JPY',
-    // casinoCurrencySymbol: '$',
-    // casinoCurrencySymbol: 'EUR',
-
-    egmCode: '123456',
-    casinoId: '1',
+    ownerId: '',
+    twoLetterISOLanguageName: '',
+    casinoCurrencySymbol: '',
+    egmCode: '',
+    casinoId: '',
   };
 
   private mboxDataSubject = new BehaviorSubject<MboxData>(this.mboxDataObject);
   public mboxData$: Observable<MboxData> = this.mboxDataSubject.asObservable();
 
-  constructor(private config: ConfigService) {}
+  constructor(private config: ConfigService) {
+    this.initializeMboxData();
+  }
+
+  private initializeMboxData(): void {
+    const initialMboxInfo = GetInitialMboxInfo();
+
+    if (initialMboxInfo) {
+      this.setMboxData({
+        ownerId: initialMboxInfo.ownerId || '',
+        twoLetterISOLanguageName:
+          initialMboxInfo.twoLetterISOLanguageName ||
+          this.config.defaultLanguage,
+        casinoCurrencySymbol:
+          initialMboxInfo.casinoCurrencySymbol ||
+          this.config.defaultCurrencySymbol,
+        egmCode: initialMboxInfo.egmCode || '',
+        casinoId: initialMboxInfo.casinoId || '',
+      });
+    } else {
+      this.setMboxData({
+        ownerId: 'YOHANN',
+        twoLetterISOLanguageName: 'fr',
+        casinoCurrencySymbol: '€',
+        egmCode: '123456',
+        casinoId: '1',
+      });
+    }
+
+    onMboxDataMessage((data: MboxData) => {
+      this.updateMboxData(data);
+    });
+  }
 
   updateMboxData(data: Partial<MboxData>): void {
     this.mboxDataObject = {
@@ -78,11 +87,5 @@ export class MboxInfoService {
 
   getLanguage(): string {
     return this.mboxDataObject.twoLetterISOLanguageName;
-  }
-
-  private receiveMessage(event: MessageEvent<MboxInfo>) {
-    if (event.data.messageType === 'mbox-data') {
-      this.updateMboxData(event.data);
-    }
   }
 }

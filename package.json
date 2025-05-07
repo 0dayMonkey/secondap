@@ -30,7 +30,7 @@
     "classlist.js": "^1.1.20150312",
     "core-js": "^3.41.0",
     "material-icons": "^1.13.14",
-    "mbox-opencontent-sdk": "file:../../Downloads/mbox-opencontent-sdk-0.0.2.tgz",
+    "mbox-opencontent-sdk": "file:../../Downloads/mbox-opencontent-sdk-0.0.3.tgz",
     "primeicons": "^7.0.0",
     "primeng": "^17.18.15",
     "regenerator-runtime": "^0.14.1",
