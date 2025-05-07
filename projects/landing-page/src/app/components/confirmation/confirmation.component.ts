@@ -68,20 +68,10 @@ export class ConfirmationComponent implements OnInit {
           this.data.rewardType || ''
         );
 
-        const formattedBalance = this.formatReward(
-          this.data.newBalance || 0,
-          this.data.rewardType || ''
-        );
-
         const rewardTypeText =
           this.data.rewardType === 'Point'
             ? this.translate.instant('Confirmation.memberRewardType')
             : this.translate.instant('Confirmation.machineRewardType');
-
-        const balanceTypeText =
-          this.data.rewardType === 'Point'
-            ? this.translate.instant('Confirmation.pointsBalance')
-            : this.translate.instant('Confirmation.cashBalance');
 
         this.messageText = this.translate.instant(
           'Confirmation.memberSuccessMessage',
@@ -91,13 +81,31 @@ export class ConfirmationComponent implements OnInit {
           }
         );
 
-        this.subMessageText = this.translate.instant(
-          'Confirmation.balanceMessage',
-          {
-            rewardType: balanceTypeText,
-            balance: formattedBalance,
-          }
-        );
+        // Afficher le sous-message de solde uniquement pour les points, pas pour les montants
+        if (
+          this.data.rewardType === 'Point' &&
+          this.data.newBalance !== undefined
+        ) {
+          const formattedBalance = this.formatReward(
+            this.data.newBalance,
+            this.data.rewardType
+          );
+
+          const balanceTypeText = this.translate.instant(
+            'Confirmation.pointsBalance'
+          );
+
+          this.subMessageText = this.translate.instant(
+            'Confirmation.balanceMessage',
+            {
+              rewardType: balanceTypeText,
+              balance: formattedBalance,
+            }
+          );
+        } else {
+          // Pour les montants, on n'affiche pas de sous-message de solde
+          this.subMessageText = '';
+        }
       } else {
         const formattedReward = this.formatReward(
           this.data.rewardValue || 0,

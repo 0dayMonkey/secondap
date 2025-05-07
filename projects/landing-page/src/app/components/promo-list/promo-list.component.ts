@@ -135,7 +135,6 @@ export class PromoListComponent implements OnInit {
   selectPromo(promo: Promotion, element: HTMLElement): void {
     this.animationService.applyClickAnimation(element);
 
-    // Demande d'authentification du joueur avec requestPlayerPin
     const currentUrl = window.location.href.split('?')[0];
     const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
 

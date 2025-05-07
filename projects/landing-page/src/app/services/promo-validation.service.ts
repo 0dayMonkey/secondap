@@ -14,6 +14,7 @@ export interface ValidationResult {
   newBalance?: number;
   errorMessage?: string;
   promoId?: number;
+  errorCode?: string;
 }
 
 export interface PlayerAuthRequest {
@@ -52,16 +53,42 @@ export class PromoValidationService {
             promoId: response.promo.id,
           };
         } else {
+          let errorCode: string | undefined;
+
+          if (typeof response.message === 'string') {
+            const match = response.message.match(/JOAPI_STIM_\d+/);
+            if (match) {
+              errorCode = match[0];
+            }
+          }
+
           return {
             isSuccess: false,
             isMember: this.mboxService.getPlayerId() !== '0',
             errorMessage:
               response.message ||
               this.errorService.getErrorMessage(StimErrorCode.STIM_INEXISTANTE),
+            errorCode: errorCode,
           };
         }
       }),
       catchError((error) => {
+        let errorCode: string | undefined;
+
+        if (error.error && error.error.code) {
+          errorCode = error.error.code;
+        } else if (error.error && error.error.error && error.error.error.code) {
+          errorCode = error.error.error.code;
+        } else {
+          const message = error.message || '';
+          const match = message.match(/JOAPI_STIM_\d+/);
+          if (match) {
+            errorCode = match[0];
+          } else {
+            errorCode = 'UNKNOWN_ERROR';
+          }
+        }
+
         return of({
           isSuccess: false,
           isMember: this.mboxService.getPlayerId() !== '0',
@@ -90,8 +117,13 @@ export class PromoValidationService {
         };
       }),
       catchError((error) => {
-        const errorCode =
-          error.error?.code || error.error?.error?.code || 'UNKNOWN_ERROR';
+        let errorCode = 'UNKNOWN_ERROR';
+        if (error.error?.code) {
+          errorCode = error.error.code;
+        } else if (error.error?.error?.code) {
+          errorCode = error.error.error.code;
+        }
+
         console.error(
           "Erreur lors de l'application de la promotion:",
           error,
@@ -103,6 +135,7 @@ export class PromoValidationService {
           isSuccess: false,
           isMember: this.mboxService.getPlayerId() !== '0',
           errorMessage: this.errorService.getErrorMessage(errorCode),
+          errorCode: errorCode,
         });
       })
     );
@@ -110,7 +143,7 @@ export class PromoValidationService {
 
   requestPlayerAuthentication(authRequest: PlayerAuthRequest): void {
     try {
-      console.log("Appel à l'auth reussi");
+      console.log("Appel à l'auth réussi");
       requestPlayerPin({
         appName: 'JOA MyPromo',
         urlOnSuccess: authRequest.urlOnSuccess,
