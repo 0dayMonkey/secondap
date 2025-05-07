@@ -1,4 +1,3 @@
-// projects/landing-page/src/app/services/error-handling.service.ts
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 

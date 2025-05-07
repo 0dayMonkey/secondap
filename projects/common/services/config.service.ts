@@ -4,8 +4,8 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ConfigService {
-  // readonly apiBaseUrl: string = 'https://recette-api.joa.fr/v1';
-  readonly apiBaseUrl: string = 'https://localhost:3000/';
+  readonly apiBaseUrl: string = 'https://recette-api.joa.fr/v1';
+  // readonly apiBaseUrl: string = 'http://localhost:3000';
 
   // ms
   readonly itemAnimationDelay: number = 50;
