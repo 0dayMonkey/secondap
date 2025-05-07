@@ -152,13 +152,11 @@ export class PromoListComponent implements OnInit {
     });
   }
 
-  // Traiter les résultats de l'authentification par PIN
   handlePinAuthResult(params: any): void {
     const status = params['status'];
     const promoId = parseInt(params['promoId'], 10);
 
     if (status === 'success' && promoId) {
-      // Authentification réussie, applique la promotion
       this.promoValidationService.applyValidatedPromo(promoId).subscribe({
         next: (result) => {
           if (result.isSuccess) {

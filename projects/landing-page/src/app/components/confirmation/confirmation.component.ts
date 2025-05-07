@@ -65,16 +65,21 @@ export class ConfirmationComponent implements OnInit {
       if (this.data.isMember) {
         const formattedReward = this.formatReward(
           this.data.rewardValue || 0,
-          this.data.rewardType || 'credits'
+          this.data.rewardType || ''
         );
 
         const formattedBalance = this.formatReward(
           this.data.newBalance || 0,
-          this.data.rewardType || 'credits'
+          this.data.rewardType || ''
         );
 
         const rewardTypeText =
-          this.data.rewardType === 'credits'
+          this.data.rewardType === 'Point'
+            ? this.translate.instant('Confirmation.memberRewardType')
+            : this.translate.instant('Confirmation.machineRewardType');
+
+        const balanceTypeText =
+          this.data.rewardType === 'Point'
             ? this.translate.instant('Confirmation.pointsBalance')
             : this.translate.instant('Confirmation.cashBalance');
 
@@ -82,21 +87,21 @@ export class ConfirmationComponent implements OnInit {
           'Confirmation.memberSuccessMessage',
           {
             reward: formattedReward,
-            rewardType: this.translate.instant('Confirmation.memberRewardType'),
+            rewardType: rewardTypeText,
           }
         );
 
         this.subMessageText = this.translate.instant(
           'Confirmation.balanceMessage',
           {
-            rewardType: rewardTypeText,
+            rewardType: balanceTypeText,
             balance: formattedBalance,
           }
         );
       } else {
         const formattedReward = this.formatReward(
           this.data.rewardValue || 0,
-          this.data.rewardType || 'credits'
+          this.data.rewardType || ''
         );
 
         this.messageText = this.translate.instant(
@@ -120,7 +125,7 @@ export class ConfirmationComponent implements OnInit {
   }
 
   private formatReward(value: number, type: string): string {
-    if (type === 'credits') {
+    if (type === 'Point') {
       return this.translate.instant('PromoList.bonusPoints', {
         value: value,
       });

@@ -110,6 +110,7 @@ export class PromoValidationService {
 
   requestPlayerAuthentication(authRequest: PlayerAuthRequest): void {
     try {
+      console.log("Appel à l'auth reussi");
       requestPlayerPin({
         appName: 'JOA MyPromo',
         urlOnSuccess: authRequest.urlOnSuccess,
@@ -118,6 +119,7 @@ export class PromoValidationService {
         customPayload: authRequest.customPayload,
       });
     } catch (error) {
+      console.log("Appel à l'auth échoué");
       console.error("Erreur lors de la demande d'authentification:", error);
     }
   }
