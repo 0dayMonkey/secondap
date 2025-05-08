@@ -1,7 +1,12 @@
+// projects/landing-page/src/app/app.module.ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import {
+  HttpClientModule,
+  HttpClient,
+  HTTP_INTERCEPTORS,
+} from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -22,6 +27,7 @@ import { PinCodeService } from './services/pin-code.service';
 import { PromoValidationService } from './services/promo-validation.service';
 import { TranslationService } from './services/translation.service';
 import { ErrorHandlingService } from './services/error-handler.service';
+import { HttpErrorInterceptor } from './services/http-error.interceptor';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ConfigService } from '../../../common/services/config.service';
@@ -69,6 +75,11 @@ export function HttpLoaderFactory(http: HttpClient) {
     ApiService,
     CurrencyPipe,
     ErrorHandlingService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpErrorInterceptor,
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent],
 })

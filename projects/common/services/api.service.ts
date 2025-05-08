@@ -9,6 +9,7 @@ import {
   Promotion,
   Stim,
 } from '../models/common.models';
+import { ErrorSource, StandardizedError } from '../models/error.models';
 
 @Injectable({
   providedIn: 'root',
@@ -31,14 +32,7 @@ export class ApiService {
             'Erreur lors de la récupération des promotions:',
             error
           );
-          return throwError(() => ({
-            error: {
-              code: this.getErrorCodeFromResponse(error),
-              message:
-                error.message ||
-                'Erreur lors de la récupération des promotions',
-            },
-          }));
+          return throwError(() => error);
         })
       );
   }
@@ -73,7 +67,6 @@ export class ApiService {
 
   checkPlayerStatus(): Observable<PlayerStatus> {
     const playerId = this.mboxService.getPlayerId();
-    //toujours un client, simulation pour l'instant
     return this.http
       .get<PlayerStatus>(this.config.getAPIPlayerStatusUrl(playerId))
       .pipe(
@@ -82,14 +75,7 @@ export class ApiService {
             'Erreur lors de la vérification du statut du joueur:',
             error
           );
-          return throwError(() => ({
-            error: {
-              code: this.getErrorCodeFromResponse(error),
-              message:
-                error.message ||
-                'Erreur lors de la vérification du statut du joueur',
-            },
-          }));
+          return throwError(() => error);
         })
       );
   }
@@ -104,13 +90,7 @@ export class ApiService {
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error("Erreur lors de l'utilisation de la promotion:", error);
-          return throwError(() => ({
-            error: {
-              code: this.getErrorCodeFromResponse(error),
-              message:
-                error.message || "Erreur lors de l'utilisation de la promotion",
-            },
-          }));
+          return throwError(() => error);
         })
       );
   }
@@ -133,61 +113,8 @@ export class ApiService {
       .pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Erreur lors de la validation du code promo:', error);
-          return throwError(() => ({
-            error: {
-              code: this.getErrorCodeFromResponse(error),
-              message:
-                error.message || 'Erreur lors de la validation du code promo',
-            },
-          }));
+          return throwError(() => error);
         })
       );
-  }
-
-  private getErrorCodeFromResponse(error: HttpErrorResponse): string {
-    if (error.status === 0) {
-      return 'API_COMMUNICATION_ERROR';
-    }
-
-    if (error.error && typeof error.error === 'object' && error.error.code) {
-      return error.error.code;
-    }
-
-    if (
-      error.error &&
-      typeof error.error === 'object' &&
-      error.error.error &&
-      error.error.error.code
-    ) {
-      return error.error.error.code;
-    }
-
-    if (error.error && typeof error.error === 'string') {
-      try {
-        const parsedError = JSON.parse(error.error);
-        if (parsedError.code) {
-          return parsedError.code;
-        }
-        if (parsedError.error && parsedError.error.code) {
-          return parsedError.error.code;
-        }
-      } catch (e) {
-        const match = error.error.match(/JOAPI_STIM_\d+/);
-        if (match) {
-          return match[0];
-        }
-      }
-    }
-
-    if (error.message) {
-      const match = error.message.match(/JOAPI_STIM_\d+/);
-      if (match) {
-        return match[0];
-      }
-    }
-
-    console.warn("Code d'erreur non identifié:", error);
-
-    return 'UNKNOWN_ERROR';
   }
 }

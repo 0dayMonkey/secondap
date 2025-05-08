@@ -1,9 +1,10 @@
+// projects/landing-page/src/app/services/promo-validation.service.ts
 import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../../../common/services/api.service';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
-import { ErrorHandlingService, StimErrorCode } from './error-handler.service';
+import { ErrorHandlingService } from './error-handler.service';
 import { requestPlayerPin } from 'mbox-opencontent-sdk';
 
 export interface ValidationResult {
@@ -15,6 +16,7 @@ export interface ValidationResult {
   errorMessage?: string;
   promoId?: number;
   errorCode?: string;
+  message?: string;
 }
 
 export interface PlayerAuthRequest {
@@ -53,6 +55,7 @@ export class PromoValidationService {
             promoId: response.promo.id,
           };
         } else {
+          // Gestion du cas où le code est invalide, mais pas une erreur HTTP
           let errorCode: string | undefined;
 
           if (typeof response.message === 'string') {
@@ -67,57 +70,53 @@ export class PromoValidationService {
           return {
             isSuccess: false,
             isMember: this.mboxService.getPlayerId() !== '0',
-            errorMessage:
-              response.message ||
-              this.errorService.getErrorMessage(StimErrorCode.STIM_INEXISTANTE),
-            errorCode: errorCode,
+            errorMessage: this.errorService.getTranslatedErrorMessage(
+              errorCode || 'UNKNOWN_ERROR'
+            ),
+            errorCode: errorCode || 'UNKNOWN_ERROR',
           };
         }
       }),
-      catchError((error) => {
-        let errorCode: string | undefined;
-        let errorMessage: string = 'Erreur inconnue';
+      catchError((error: any) => {
+        console.log('[PROMO_SERVICE] Erreur:', error);
 
-        if (error.error && error.error.code) {
-          errorCode = error.error.code;
-          errorMessage = error.error.message || 'Erreur inconnue';
-        } else if (error.error && error.error.error && error.error.error.code) {
-          errorCode = error.error.error.code;
-          errorMessage = error.error.error.message || 'Erreur inconnue';
-        } else {
-          const message = error.message || '';
-          const match = message.match(/JOAPI_STIM_\d+/);
-          if (match) {
-            errorCode = match[0];
-          } else {
-            errorCode = 'UNKNOWN_ERROR';
-          }
-          errorMessage = error.message || 'Erreur inconnue';
+        // Si c'est déjà une erreur normalisée avec un code
+        if (error && error.code) {
+          return of(
+            this.errorService.toValidationResult(
+              error,
+              this.mboxService.getPlayerId() !== '0'
+            )
+          );
         }
 
-        console.log(
-          "[PROMO_SERVICE] Code d'erreur extrait de l'erreur:",
-          errorCode
+        // Sinon, normaliser l'erreur
+        const normalizedError = this.errorService.normalizeHttpError(
+          error,
+          'PROMO_VALIDATION'
         );
-
-        return of({
-          isSuccess: false,
-          isMember: this.mboxService.getPlayerId() !== '0',
-          errorMessage: this.errorService.handleApiError(error) || errorMessage,
-          errorCode: errorCode,
-        });
+        return of(
+          this.errorService.toValidationResult(
+            normalizedError,
+            this.mboxService.getPlayerId() !== '0'
+          )
+        );
       })
     );
   }
 
   applyValidatedPromo(promoId: number): Observable<ValidationResult> {
     if (!promoId) {
-      return throwError(
-        () =>
-          new Error(
-            this.errorService.getErrorMessage(StimErrorCode.STIM_INEXISTANTE)
-          )
+      const error = this.errorService.normalizeApplicationError(
+        {
+          code: 'JOAPI_STIM_0001',
+          message:
+            this.errorService.getTranslatedErrorMessage('JOAPI_STIM_0001'),
+        },
+        'PROMO_VALIDATION'
       );
+
+      return throwError(() => error);
     }
 
     return this.apiService.usePromo(promoId).pipe(
@@ -128,38 +127,33 @@ export class PromoValidationService {
           message: response.message,
         };
       }),
-      catchError((error) => {
-        let errorCode = 'UNKNOWN_ERROR';
-        let errorMessage = 'Erreur inconnue';
-
-        if (error.error?.code) {
-          errorCode = error.error.code;
-          errorMessage = error.error.message || 'Erreur inconnue';
-        } else if (error.error?.error?.code) {
-          errorCode = error.error.error.code;
-          errorMessage = error.error.error.message || 'Erreur inconnue';
-        } else {
-          const message = error.message || '';
-          const match = message.match(/JOAPI_STIM_\d+/);
-          if (match) {
-            errorCode = match[0];
-          }
-        }
-
+      catchError((error: any) => {
         console.error(
           "[PROMO_SERVICE] Erreur lors de l'application de la promotion:",
-          error,
-          'Code:',
-          errorCode
+          error
         );
 
-        return of({
-          isSuccess: false,
-          isMember: this.mboxService.getPlayerId() !== '0',
-          errorMessage:
-            this.errorService.getErrorMessage(errorCode) || errorMessage,
-          errorCode: errorCode,
-        });
+        // Si c'est déjà une erreur normalisée avec un code
+        if (error && error.code) {
+          return of(
+            this.errorService.toValidationResult(
+              error,
+              this.mboxService.getPlayerId() !== '0'
+            )
+          );
+        }
+
+        // Sinon, normaliser l'erreur
+        const normalizedError = this.errorService.normalizeHttpError(
+          error,
+          'PROMO_APPLY'
+        );
+        return of(
+          this.errorService.toValidationResult(
+            normalizedError,
+            this.mboxService.getPlayerId() !== '0'
+          )
+        );
       })
     );
   }
@@ -192,11 +186,25 @@ export class PromoValidationService {
         error
       );
 
-      throw new Error('MBOX_AUTH_ERROR');
+      throw this.errorService.normalizeMboxError(error, 'MBOX_AUTH');
     }
   }
 
+  /**
+   * Gère les erreurs d'authentification MBox
+   */
+  handleMboxAuthError(errorCode: string): ValidationResult {
+    const standardizedError = this.errorService.normalizeMboxError(
+      errorCode,
+      'MBOX_AUTH'
+    );
+    return this.errorService.toValidationResult(
+      standardizedError,
+      this.mboxService.getPlayerId() !== '0'
+    );
+  }
+
   private calculateNewBalance(rewardValue: number, rewardType: string): number {
-    return rewardValue + 1000;
+    return rewardValue + 1000; // Valeur simulée pour l'instant
   }
 }

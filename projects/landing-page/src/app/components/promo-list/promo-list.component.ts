@@ -18,6 +18,7 @@ import {
 } from '../../services/promo-validation.service';
 import { ActivatedRoute } from '@angular/router';
 import { PinCodeComponent } from '../pin-code/pin-code.component';
+import { ErrorHandlingService } from '../../services/error-handler.service';
 
 @Component({
   selector: 'app-promo-list',
@@ -53,7 +54,8 @@ export class PromoListComponent implements OnInit {
     private mboxInfoService: MboxInfoService,
     private config: ConfigService,
     private promoValidationService: PromoValidationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private errorService: ErrorHandlingService
   ) {}
 
   ngOnInit(): void {
@@ -164,18 +166,22 @@ export class PromoListComponent implements OnInit {
           rewardValue: promo.reward_value,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(
         "[PROMO_LIST] Erreur lors de la demande d'authentification:",
         error
       );
-      // Afficher un message d'erreur à l'utilisateur
-      this.showConfirmationScreen({
-        isSuccess: false,
-        isMember: true,
-        errorMessage: this.translate.instant('Errors.MBOX_AUTH_ERROR'),
-        errorCode: 'MBOX_AUTH_ERROR',
-      });
+      // Vérifier si l'erreur a un code
+      if (error && error.code) {
+        this.showConfirmationScreen(
+          this.errorService.toValidationResult(error, true)
+        );
+      } else {
+        // Sinon, utiliser le service d'erreur pour la standardiser
+        this.showConfirmationScreen(
+          this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR')
+        );
+      }
     }
   }
 
@@ -211,27 +217,24 @@ export class PromoListComponent implements OnInit {
       case 'failure':
         // Échec de l'authentification (PIN incorrect)
         console.log("[PROMO_LIST] Échec de l'authentification (PIN incorrect)");
-        this.showConfirmationScreen({
-          isSuccess: false,
-          isMember: true,
-          errorMessage: this.translate.instant('Errors.PIN_INVALID'),
-          errorCode: 'PIN_INVALID',
-        });
+        this.showConfirmationScreen(
+          this.promoValidationService.handleMboxAuthError('PIN_INVALID')
+        );
         break;
 
       case 'error':
         // Erreur technique de la MBox
         console.log("[PROMO_LIST] Erreur technique lors de l'authentification");
-        this.showConfirmationScreen({
-          isSuccess: false,
-          isMember: true,
-          errorMessage: this.translate.instant('Errors.MBOX_AUTH_ERROR'),
-          errorCode: 'MBOX_AUTH_ERROR',
-        });
+        this.showConfirmationScreen(
+          this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR')
+        );
         break;
 
       default:
         console.error('[PROMO_LIST] Status de retour inconnu:', status);
+        this.showConfirmationScreen(
+          this.promoValidationService.handleMboxAuthError('UNKNOWN_ERROR')
+        );
         break;
     }
   }
@@ -437,20 +440,6 @@ export class PromoListComponent implements OnInit {
 
   showConfirmationScreen(data: ValidationResult): void {
     console.log("[PROMO_LIST] Affichage de l'écran de confirmation:", data);
-
-    if (!data.isSuccess && data.errorCode) {
-      const errorKey = `Errors.${data.errorCode}`;
-      const translatedMessage = this.translate.instant(errorKey);
-
-      if (translatedMessage !== errorKey) {
-        data.errorMessage = translatedMessage;
-      } else if (data.errorMessage) {
-        data.errorMessage = data.errorMessage;
-      } else {
-        data.errorMessage = this.translate.instant('Errors.UNKNOWN_ERROR');
-      }
-    }
-
     this.confirmationData = data;
     this.showConfirmation = true;
 

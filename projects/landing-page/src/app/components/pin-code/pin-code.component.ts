@@ -1,3 +1,4 @@
+// projects/landing-page/src/app/components/pin-code/pin-code.component.ts
 import {
   Component,
   EventEmitter,
@@ -14,6 +15,7 @@ import {
   ValidationResult,
   PlayerAuthRequest,
 } from '../../services/promo-validation.service';
+import { ErrorHandlingService } from '../../services/error-handler.service';
 
 @Component({
   selector: 'app-pin-code',
@@ -35,26 +37,13 @@ export class PinCodeComponent implements OnInit {
   isExiting: boolean = false;
   isLoading: boolean = false;
 
-  // Codes d'erreur qui nécessitent l'effacement du code PIN
-  private errorCodesToClear: string[] = [
-    'JOAPI_STIM_0003',
-    'JOAPI_STIM_0004',
-    'JOAPI_STIM_0005',
-    'JOAPI_STIM_0006',
-    'JOAPI_STIM_0007',
-    'JOAPI_STIM_0009',
-    'JOAPI_STIM_0011',
-    'JOAPI_STIM_0012',
-    'JOAPI_STIM_0013',
-    'JOAPI_STIM_0017',
-  ];
-
   constructor(
     private translate: TranslateService,
     private pinCodeService: PinCodeService,
     private config: ConfigService,
     private el: ElementRef,
-    private promoValidationService: PromoValidationService
+    private promoValidationService: PromoValidationService,
+    private errorService: ErrorHandlingService
   ) {}
 
   ngOnInit(): void {}
@@ -129,13 +118,6 @@ export class PinCodeComponent implements OnInit {
       // Demande d'authentification du joueur via la MBox
       this.promoValidationService.requestPlayerAuthentication(authRequest);
 
-      // En cas de succès, la MBox redirigera vers urlOnSuccess
-      // En cas d'échec d'auth, la MBox redirigera vers urlOnFailure
-      // En cas d'erreur technique, la MBox redirigera vers urlOnError
-
-      // En attendant, on peut montrer l'écran de confirmation avec un message d'attente
-      // ou simplement laisser le système de redirection MBox s'occuper de tout
-
       // Si pour une raison quelconque la MBox ne redirige pas, on peut gérer un timeout
       setTimeout(() => {
         if (this.isLoading) {
@@ -161,18 +143,14 @@ export class PinCodeComponent implements OnInit {
       errorCode
     );
 
-    // Ici on peut effacer le code PIN si nécessaire pour certaines erreurs
-    if (errorCode === 'MBOX_AUTH_ERROR') {
+    // Utiliser le service d'erreur pour obtenir un ValidationResult standardisé
+    const errorResult =
+      this.promoValidationService.handleMboxAuthError(errorCode);
+
+    // Effacer le code PIN si nécessaire
+    if (this.errorService.shouldClearPinCode(errorCode)) {
       this.clearCode();
     }
-
-    // Afficher un message d'erreur approprié
-    const errorResult: ValidationResult = {
-      isSuccess: false,
-      isMember: false,
-      errorMessage: this.translate.instant('Errors.MBOX_AUTH_ERROR'),
-      errorCode: errorCode,
-    };
 
     this.exitWithConfirmation(errorResult);
   }
@@ -188,66 +166,50 @@ export class PinCodeComponent implements OnInit {
         if (result.isSuccess && result.promoId) {
           // Promotion validée
           this.clearCode();
-        } else {
-          // Échec de validation de promotion
-          if (result.errorCode && this.shouldClearCode(result.errorCode)) {
-            console.log(
-              `[PIN_CODE] Effacement du code PIN pour erreur: ${result.errorCode}`
-            );
-            this.clearCode();
-          }
+        } else if (
+          result.errorCode &&
+          this.errorService.shouldClearPinCode(result.errorCode)
+        ) {
+          // Échec de validation - effacer le code si nécessaire
+          console.log(
+            `[PIN_CODE] Effacement du code PIN pour erreur: ${result.errorCode}`
+          );
+          this.clearCode();
         }
 
         this.exitWithConfirmation(result);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error(
           '[PIN_CODE] Erreur lors de la validation de la promotion:',
           error
         );
         this.isLoading = false;
 
-        let errorMessage = 'Erreur de connexion au serveur';
-        let errorCode = '';
+        // Normaliser l'erreur et créer un ValidationResult
+        let errorResult: ValidationResult;
 
-        if (error.error && error.error.code) {
-          errorCode = error.error.code;
-          errorMessage = error.error.message || errorMessage;
-        } else if (error.error && error.error.error && error.error.error.code) {
-          errorCode = error.error.error.code;
-          errorMessage = error.error.error.message || errorMessage;
-        } else if (error.message) {
-          errorMessage = error.message;
-          const match = error.message.match(/JOAPI_STIM_\d+/);
-          if (match) {
-            errorCode = match[0];
+        if (error && error.code) {
+          // Si l'erreur a déjà un code, utiliser directement
+          errorResult = this.errorService.toValidationResult(error, false);
+
+          // Effacer le code PIN si nécessaire
+          if (
+            error.requirePinClear ||
+            this.errorService.shouldClearPinCode(error.code)
+          ) {
+            this.clearCode();
           }
-        }
-
-        // Vérifier si on doit effacer le code
-        if (errorCode && this.shouldClearCode(errorCode)) {
-          console.log(
-            `[PIN_CODE] Effacement du code PIN pour erreur: ${errorCode}`
-          );
+        } else {
+          // Sinon, créer une erreur de type validation
+          errorResult =
+            this.promoValidationService.handleMboxAuthError('VALIDATION_ERROR');
           this.clearCode();
         }
 
-        this.exitWithConfirmation({
-          isSuccess: false,
-          isMember: false,
-          errorMessage: errorMessage,
-          errorCode: errorCode,
-        });
+        this.exitWithConfirmation(errorResult);
       },
     });
-  }
-
-  // Méthode pour déterminer si le code doit être effacé
-  private shouldClearCode(errorCode: string): boolean {
-    console.log(
-      `[PIN_CODE] Vérification d'effacement pour le code: ${errorCode}`
-    );
-    return this.errorCodesToClear.includes(errorCode);
   }
 
   private exitWithConfirmation(result: ValidationResult): void {
