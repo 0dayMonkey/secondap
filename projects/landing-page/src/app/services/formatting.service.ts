@@ -53,21 +53,6 @@ export class FormattingService {
     }
   }
 
-  getPromoIconClass(promoType: string): string {
-    switch (promoType) {
-      case 'birthday':
-        return 'birthday-icon';
-      case 'cashback':
-        return 'cashback-icon';
-      case 'bonus':
-        return 'bonus-icon';
-      case 'gift':
-        return 'gift-icon';
-      default:
-        return 'default-icon';
-    }
-  }
-
   getUtilisationInfo(promo: Promotion): string {
     if (!promo.utilisation) {
       return '';

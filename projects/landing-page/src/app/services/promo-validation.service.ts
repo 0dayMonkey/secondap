@@ -62,6 +62,8 @@ export class PromoValidationService {
             }
           }
 
+          console.log("[PROMO_SERVICE] Code d'erreur extrait:", errorCode);
+
           return {
             isSuccess: false,
             isMember: this.mboxService.getPlayerId() !== '0',
@@ -74,11 +76,14 @@ export class PromoValidationService {
       }),
       catchError((error) => {
         let errorCode: string | undefined;
+        let errorMessage: string = 'Erreur inconnue';
 
         if (error.error && error.error.code) {
           errorCode = error.error.code;
+          errorMessage = error.error.message || 'Erreur inconnue';
         } else if (error.error && error.error.error && error.error.error.code) {
           errorCode = error.error.error.code;
+          errorMessage = error.error.error.message || 'Erreur inconnue';
         } else {
           const message = error.message || '';
           const match = message.match(/JOAPI_STIM_\d+/);
@@ -87,12 +92,19 @@ export class PromoValidationService {
           } else {
             errorCode = 'UNKNOWN_ERROR';
           }
+          errorMessage = error.message || 'Erreur inconnue';
         }
+
+        console.log(
+          "[PROMO_SERVICE] Code d'erreur extrait de l'erreur:",
+          errorCode
+        );
 
         return of({
           isSuccess: false,
           isMember: this.mboxService.getPlayerId() !== '0',
-          errorMessage: this.errorService.handleApiError(error),
+          errorMessage: this.errorService.handleApiError(error) || errorMessage,
+          errorCode: errorCode,
         });
       })
     );
@@ -118,14 +130,24 @@ export class PromoValidationService {
       }),
       catchError((error) => {
         let errorCode = 'UNKNOWN_ERROR';
+        let errorMessage = 'Erreur inconnue';
+
         if (error.error?.code) {
           errorCode = error.error.code;
+          errorMessage = error.error.message || 'Erreur inconnue';
         } else if (error.error?.error?.code) {
           errorCode = error.error.error.code;
+          errorMessage = error.error.error.message || 'Erreur inconnue';
+        } else {
+          const message = error.message || '';
+          const match = message.match(/JOAPI_STIM_\d+/);
+          if (match) {
+            errorCode = match[0];
+          }
         }
 
         console.error(
-          "Erreur lors de l'application de la promotion:",
+          "[PROMO_SERVICE] Erreur lors de l'application de la promotion:",
           error,
           'Code:',
           errorCode
@@ -134,7 +156,8 @@ export class PromoValidationService {
         return of({
           isSuccess: false,
           isMember: this.mboxService.getPlayerId() !== '0',
-          errorMessage: this.errorService.getErrorMessage(errorCode),
+          errorMessage:
+            this.errorService.getErrorMessage(errorCode) || errorMessage,
           errorCode: errorCode,
         });
       })
@@ -143,7 +166,15 @@ export class PromoValidationService {
 
   requestPlayerAuthentication(authRequest: PlayerAuthRequest): void {
     try {
-      console.log("Appel à l'auth réussi");
+      console.log("[PROMO_SERVICE] Appel à l'authentification PIN - START");
+      console.log('[PROMO_SERVICE] Paramètres:', {
+        promoId: authRequest.promoId,
+        urlOnSuccess: authRequest.urlOnSuccess,
+        urlOnFailure: authRequest.urlOnFailure,
+        urlOnError: authRequest.urlOnError,
+        payload: authRequest.customPayload,
+      });
+
       requestPlayerPin({
         appName: 'JOA MyPromo',
         urlOnSuccess: authRequest.urlOnSuccess,
@@ -151,9 +182,17 @@ export class PromoValidationService {
         urlOnError: authRequest.urlOnError,
         customPayload: authRequest.customPayload,
       });
+
+      console.log("[PROMO_SERVICE] Appel à l'authentification PIN - SUCCESS");
+      console.log('[PROMO_SERVICE] Attente de redirection par la MBox...');
     } catch (error) {
-      console.log("Appel à l'auth échoué");
-      console.error("Erreur lors de la demande d'authentification:", error);
+      console.log("[PROMO_SERVICE] Appel à l'authentification PIN - ÉCHEC");
+      console.error(
+        "[PROMO_SERVICE] Erreur lors de la demande d'authentification:",
+        error
+      );
+
+      throw new Error('MBOX_AUTH_ERROR');
     }
   }
 

@@ -43,7 +43,12 @@
     "JOAPI_STIM_0011": "Établissement d'utilisation non spécifié.",
     "JOAPI_STIM_0012": "Promotion inutilisable, réessayez ultérieurement.",
     "JOAPI_STIM_0013": "Promotion inutilisable, réessayez ultérieurement.",
-    "JOAPI_STIM_0017": "Promotion non utilisable sur cette machine"
+    "JOAPI_STIM_0017": "Promotion non utilisable sur cette machine",
+    
+    "MBOX_AUTH_ERROR": "Impossible de procéder à l'identification, réessayez ultérieurement.",
+    "PIN_INVALID": "PIN incorrect, réessayez ultérieurement.",
+    "MBOX_TIMEOUT_ERROR": "L'identification a pris trop de temps, réessayez ultérieurement.",
+    "APPLICATION_ERROR": "Erreur lors de l'application de la promotion, réessayez ultérieurement.",
+    "VALIDATION_ERROR": "Erreur lors de la validation du code, réessayez ultérieurement."
   }
 }
-

@@ -28,7 +28,7 @@ export class MboxInfoService {
 
     if (initialMboxInfo) {
       this.setMboxData({
-        ownerId: /*initialMboxInfo.ownerId || ''*/ '111111',
+        ownerId: /*initialMboxInfo.ownerId || ''*/ 'YOHANN',
         twoLetterISOLanguageName:
           initialMboxInfo.twoLetterISOLanguageName ||
           this.config.defaultLanguage,
