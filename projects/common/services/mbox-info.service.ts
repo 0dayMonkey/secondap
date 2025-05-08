@@ -28,7 +28,7 @@ export class MboxInfoService {
 
     if (initialMboxInfo) {
       this.setMboxData({
-        ownerId: /*initialMboxInfo.ownerId || ''*/ '111111',
+        ownerId: /*initialMboxInfo.ownerId || ''*/ '',
         twoLetterISOLanguageName:
           initialMboxInfo.twoLetterISOLanguageName ||
           this.config.defaultLanguage,
@@ -39,13 +39,6 @@ export class MboxInfoService {
         casinoId: initialMboxInfo.casinoId || '',
       });
     } else {
-      this.setMboxData({
-        ownerId: 'YOHANN',
-        twoLetterISOLanguageName: 'fr',
-        casinoCurrencySymbol: '€',
-        egmCode: '123456',
-        casinoId: '1',
-      });
     }
 
     onMboxDataMessage((data: MboxData) => {

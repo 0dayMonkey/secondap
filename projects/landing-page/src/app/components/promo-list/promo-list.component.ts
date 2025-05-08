@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslationService } from '../../services/translation.service';
 import { PromoService } from '../../services/promo.service';
-import { catchError, of } from 'rxjs';
+import { catchError, Observable, of } from 'rxjs';
 import {
   MboxData,
   Promotion,
@@ -26,6 +26,7 @@ import { ErrorHandlingService } from '../../services/error-handler.service';
   styleUrls: ['./promo-list.component.scss'],
 })
 export class PromoListComponent implements OnInit {
+  translationsLoaded$: Observable<boolean>;
   promotions: Promotion[] = [];
   isCustomer = false;
   isLoading = true;
@@ -46,9 +47,9 @@ export class PromoListComponent implements OnInit {
   @ViewChild(PinCodeComponent) pinCodeComponent!: PinCodeComponent;
 
   constructor(
+    public translationService: TranslationService,
     private promoService: PromoService,
     private translate: TranslateService,
-    private translationService: TranslationService,
     private formatService: FormattingService,
     private animationService: AnimationService,
     private mboxInfoService: MboxInfoService,
@@ -56,7 +57,9 @@ export class PromoListComponent implements OnInit {
     private promoValidationService: PromoValidationService,
     private route: ActivatedRoute,
     private errorService: ErrorHandlingService
-  ) {}
+  ) {
+    this.translationsLoaded$ = this.translationService.translationsLoaded$;
+  }
 
   ngOnInit(): void {
     if (this.mboxData) {
@@ -77,6 +80,16 @@ export class PromoListComponent implements OnInit {
     this.error = null;
     this.promotions = [];
 
+    const ownerId = this.mboxInfoService.getPlayerId();
+
+    if (ownerId === '' || ownerId === '0') {
+      console.log('[PROMO_LIST] Joueur anonyme détecté:', ownerId);
+      this.isCustomer = false;
+      this.isLoading = false;
+
+      return;
+    }
+
     this.promoService
       .checkPlayerStatus()
       .pipe(
@@ -89,18 +102,33 @@ export class PromoListComponent implements OnInit {
           const normalizedError = this.errorService.normalizeHttpError(
             err,
             'PLAYER_STATUS_CHECK'
-          ); // affichage discret si l'api manque
-          this.error = normalizedError.message; // affichage discret si l'api manque
+          );
+          this.error = normalizedError.message;
+          this.isCustomer = false;
           return of({ isCustomer: false, message: '' });
         })
       )
       .subscribe((status: PlayerStatus) => {
+        if (this.error) {
+          this.isCustomer = false;
+          this.isLoading = false;
+          return;
+        }
+
         this.isCustomer = status.isCustomer;
-        console.log('[PROMO_LIST] Statut du joueur:', status);
+        console.log("[PROMO_LIST] Statut du joueur depuis l'API:", status);
 
         if (this.isCustomer) {
           this.loadPromotions();
         } else {
+          console.log(
+            "[PROMO_LIST] ID joueur non vérifié par l'API (isCustomer: false), et non anonyme:",
+            ownerId
+          );
+
+          this.error =
+            this.errorService.getTranslatedErrorMessage('UNKNOWN_ERROR');
+
           this.isLoading = false;
         }
       });
@@ -119,8 +147,8 @@ export class PromoListComponent implements OnInit {
           const normalizedError = this.errorService.normalizeHttpError(
             err,
             'LOAD_PROMOTIONS'
-          ); // affichage discret si l'api manque
-          this.error = normalizedError.message; // affichage discret si l'api manque
+          );
+          this.error = normalizedError.message;
 
           return of({ data: [], message: '' });
         })

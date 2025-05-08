@@ -1,20 +1,22 @@
 <div class="promo-container">
   <div class="promo-main-view" [class.hidden]="readyForPinCode">
-    <div class="promo-item manual-code" 
-         (click)="showEnterCodeScreen()"
-         [ngClass]="{'slide-left': animateItem(0)}">
-      <div class="icon-container">
-        <div class="circle-icon">
-          <span class="add-icon">+</span>
-        </div>
-      </div>
-      <div class="promo-content">
-        <span class="promo-title">{{"PromoList.enterCode" | translate}}</span>
-      </div>
-      <div class="arrow-icon">
-        <span>›</span>
-      </div>
+    <div class="promo-item manual-code"
+     (click)="showEnterCodeScreen()"
+     [ngClass]="{'slide-left': animateItem(0)}">
+  <div class="icon-container">
     </div>
+  <div class="promo-content">
+    <ng-container *ngIf="(translationsLoaded$ | async); else enterCodeSkeleton">
+      <span class="promo-title">{{ "PromoList.enterCode" | translate }}</span>
+    </ng-container>
+    <ng-template #enterCodeSkeleton>
+      <span class="promo-title skeleton-text skeleton-medium">&nbsp;</span>
+    </ng-template>
+  </div>
+  <div class="arrow-icon">
+    <span>›</span>
+  </div>
+</div>
     
     <div class="loader-container" *ngIf="isLoading">
       <div class="spinner"></div>

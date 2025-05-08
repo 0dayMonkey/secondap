@@ -145,3 +145,49 @@ button {
 .cancel-button-color {
   background-color: rgb(217, 4, 41);
 }
+
+.skeleton-text {
+  display: inline-block;
+  background-color: #e0e0e0;
+  color: transparent;       
+  user-select: none;       
+  border-radius: 4px;      
+  animation: pulse 1.5s infinite ease-in-out; 
+  line-height: 1em;         
+  min-height: 1em;          
+  min-width: 50px;          
+  vertical-align: middle;   
+
+  &.skeleton-short {
+    width: 80px;
+  }
+  &.skeleton-medium {
+    width: 150px;
+  }
+  &.skeleton-long {
+    width: 250px;
+  }
+  &.skeleton-title {
+    min-height: 1.2em; 
+    width: 200px;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #e0e0e0;
+  }
+  50% {
+    background-color: #d0d0d0;
+  }
+  100% {
+    background-color: #e0e0e0;
+  }
+}
+
+.text-hidden-while-loading {
+  visibility: hidden; 
+}
+.text-visible-when-loaded {
+  visibility: visible;
+}
