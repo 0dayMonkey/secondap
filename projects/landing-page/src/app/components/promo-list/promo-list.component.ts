@@ -437,6 +437,20 @@ export class PromoListComponent implements OnInit {
 
   showConfirmationScreen(data: ValidationResult): void {
     console.log("[PROMO_LIST] Affichage de l'écran de confirmation:", data);
+
+    if (!data.isSuccess && data.errorCode) {
+      const errorKey = `Errors.${data.errorCode}`;
+      const translatedMessage = this.translate.instant(errorKey);
+
+      if (translatedMessage !== errorKey) {
+        data.errorMessage = translatedMessage;
+      } else if (data.errorMessage) {
+        data.errorMessage = data.errorMessage;
+      } else {
+        data.errorMessage = this.translate.instant('Errors.UNKNOWN_ERROR');
+      }
+    }
+
     this.confirmationData = data;
     this.showConfirmation = true;
 

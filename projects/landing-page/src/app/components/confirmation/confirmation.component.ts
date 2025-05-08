@@ -124,11 +124,14 @@ export class ConfirmationComponent implements OnInit {
       }
     } else {
       this.titleText = this.translate.instant('Confirmation.errorTitle');
-      this.messageText = this.translate.instant('Confirmation.errorMessage', {
-        error:
-          this.data.errorMessage ||
-          this.translate.instant('Confirmation.genericError'),
-      });
+
+      if (this.data.errorMessage) {
+        this.messageText = this.data.errorMessage;
+      } else {
+        this.messageText = this.translate.instant('Confirmation.errorMessage', {
+          error: this.translate.instant('Confirmation.genericError'),
+        });
+      }
     }
   }
 
