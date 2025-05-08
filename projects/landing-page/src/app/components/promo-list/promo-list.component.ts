@@ -86,6 +86,11 @@ export class PromoListComponent implements OnInit {
             err
           );
           this.isLoading = false;
+          const normalizedError = this.errorService.normalizeHttpError(
+            err,
+            'PLAYER_STATUS_CHECK'
+          ); // affichage discret si l'api manque
+          this.error = normalizedError.message; // affichage discret si l'api manque
           return of({ isCustomer: false, message: '' });
         })
       )
@@ -111,6 +116,12 @@ export class PromoListComponent implements OnInit {
             err
           );
           this.isLoading = false;
+          const normalizedError = this.errorService.normalizeHttpError(
+            err,
+            'LOAD_PROMOTIONS'
+          ); // affichage discret si l'api manque
+          this.error = normalizedError.message; // affichage discret si l'api manque
+
           return of({ data: [], message: '' });
         })
       )

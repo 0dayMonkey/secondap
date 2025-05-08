@@ -30,7 +30,7 @@
   },
   "Errors": {
     "UNKNOWN_ERROR": "Une erreur inattendue s'est produite.",
-    "API_COMMUNICATION_ERROR": "Impossible de récupérer votre promotion, réessayez ultérieurement.",
+    "API_COMMUNICATION_ERROR": "Impossible de récupérer vos promotions, réessayez ultérieurement.",
     "JOAPI_STIM_0001": "Cette promotion n'existe pas.",
     "JOAPI_STIM_0002": "Promotion non disponible.", 
     "JOAPI_STIM_0003": "Vous n'êtes pas autorisé pour cette promotion.",

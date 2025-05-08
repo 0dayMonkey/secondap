@@ -75,7 +75,7 @@ export function appInitializerFactory(
     MatIconModule,
     ButtonModule,
     TranslateModule.forRoot({
-      defaultLanguage: 'fr',
+      defaultLanguage: 'en',
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,

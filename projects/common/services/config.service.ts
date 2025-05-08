@@ -27,7 +27,7 @@ export class ConfigService {
     'ru',
     'zh',
   ];
-  readonly defaultLanguage: string = 'fr';
+  readonly defaultLanguage: string = 'en';
   readonly defaultCurrencySymbol: string = '€';
 
   readonly validCodePattern: RegExp = /^\w{2}-\w{4}-\w{4}-\w{4}-\w{4}$/;
