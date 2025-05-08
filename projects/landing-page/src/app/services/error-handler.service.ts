@@ -60,6 +60,20 @@ export class ErrorHandlingService {
 
   constructor(private translate: TranslateService) {}
 
+  createValidationResult(
+    isSuccess: boolean,
+    isMember: boolean,
+    errorMessage?: string,
+    errorCode?: string
+  ): ValidationResult {
+    return {
+      isSuccess,
+      isMember,
+      errorMessage:
+        errorMessage || this.getTranslatedErrorMessage('UNKNOWN_ERROR'),
+      errorCode: errorCode || 'UNKNOWN_ERROR',
+    };
+  }
   /**
    * Normalise une erreur HTTP
    */
@@ -161,13 +175,12 @@ export class ErrorHandlingService {
    * Conversion d'une erreur standardisée en ValidationResult pour l'UI
    */
   toValidationResult(error: any, isMember: boolean = true): ValidationResult {
-    return {
-      isSuccess: false,
+    return this.createValidationResult(
+      false,
       isMember,
-      errorMessage:
-        error.message || this.getTranslatedErrorMessage('UNKNOWN_ERROR'),
-      errorCode: error.code || 'UNKNOWN_ERROR',
-    };
+      error.message || this.getTranslatedErrorMessage('UNKNOWN_ERROR'),
+      error.code || 'UNKNOWN_ERROR'
+    );
   }
 
   /**

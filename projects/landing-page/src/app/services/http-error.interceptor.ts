@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+// projects/landing-page/src/app/services/http-error.interceptor.ts
+import { Injectable, Injector } from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
@@ -12,7 +13,7 @@ import { ErrorHandlingService } from './error-handler.service';
 
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
-  constructor(private errorHandler: ErrorHandlingService) {}
+  constructor(private injector: Injector) {}
 
   intercept(
     request: HttpRequest<unknown>,
@@ -20,7 +21,8 @@ export class HttpErrorInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        const standardizedError = this.errorHandler.normalizeHttpError(
+        const errorHandler = this.injector.get(ErrorHandlingService);
+        const standardizedError = errorHandler.normalizeHttpError(
           error,
           'HTTP_REQUEST'
         );

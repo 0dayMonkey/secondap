@@ -1,5 +1,5 @@
 // projects/landing-page/src/app/services/promo-validation.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../../../common/services/api.service';
@@ -31,11 +31,26 @@ export interface PlayerAuthRequest {
   providedIn: 'root',
 })
 export class PromoValidationService {
+  private errorService: ErrorHandlingService | null = null;
+
   constructor(
     private apiService: ApiService,
     private mboxService: MboxInfoService,
-    private errorService: ErrorHandlingService
-  ) {}
+    private injector: Injector
+  ) {
+    // Initialisation tardive du service pour éviter la dépendance circulaire
+    setTimeout(() => {
+      this.errorService = this.injector.get(ErrorHandlingService);
+    });
+  }
+
+  // Obtenir le service d'erreur de manière sécurisée
+  private getErrorService(): ErrorHandlingService {
+    if (!this.errorService) {
+      this.errorService = this.injector.get(ErrorHandlingService);
+    }
+    return this.errorService;
+  }
 
   validateCode(code: string): Observable<ValidationResult> {
     return this.apiService.validatePromoCode(code).pipe(
@@ -70,7 +85,7 @@ export class PromoValidationService {
           return {
             isSuccess: false,
             isMember: this.mboxService.getPlayerId() !== '0',
-            errorMessage: this.errorService.getTranslatedErrorMessage(
+            errorMessage: this.getErrorService().getTranslatedErrorMessage(
               errorCode || 'UNKNOWN_ERROR'
             ),
             errorCode: errorCode || 'UNKNOWN_ERROR',
@@ -79,11 +94,12 @@ export class PromoValidationService {
       }),
       catchError((error: any) => {
         console.log('[PROMO_SERVICE] Erreur:', error);
+        const errorService = this.getErrorService();
 
         // Si c'est déjà une erreur normalisée avec un code
         if (error && error.code) {
           return of(
-            this.errorService.toValidationResult(
+            errorService.toValidationResult(
               error,
               this.mboxService.getPlayerId() !== '0'
             )
@@ -91,12 +107,12 @@ export class PromoValidationService {
         }
 
         // Sinon, normaliser l'erreur
-        const normalizedError = this.errorService.normalizeHttpError(
+        const normalizedError = errorService.normalizeHttpError(
           error,
           'PROMO_VALIDATION'
         );
         return of(
-          this.errorService.toValidationResult(
+          errorService.toValidationResult(
             normalizedError,
             this.mboxService.getPlayerId() !== '0'
           )
@@ -107,11 +123,11 @@ export class PromoValidationService {
 
   applyValidatedPromo(promoId: number): Observable<ValidationResult> {
     if (!promoId) {
-      const error = this.errorService.normalizeApplicationError(
+      const error = this.getErrorService().normalizeApplicationError(
         {
           code: 'JOAPI_STIM_0001',
           message:
-            this.errorService.getTranslatedErrorMessage('JOAPI_STIM_0001'),
+            this.getErrorService().getTranslatedErrorMessage('JOAPI_STIM_0001'),
         },
         'PROMO_VALIDATION'
       );
@@ -132,11 +148,12 @@ export class PromoValidationService {
           "[PROMO_SERVICE] Erreur lors de l'application de la promotion:",
           error
         );
+        const errorService = this.getErrorService();
 
         // Si c'est déjà une erreur normalisée avec un code
         if (error && error.code) {
           return of(
-            this.errorService.toValidationResult(
+            errorService.toValidationResult(
               error,
               this.mboxService.getPlayerId() !== '0'
             )
@@ -144,12 +161,12 @@ export class PromoValidationService {
         }
 
         // Sinon, normaliser l'erreur
-        const normalizedError = this.errorService.normalizeHttpError(
+        const normalizedError = errorService.normalizeHttpError(
           error,
           'PROMO_APPLY'
         );
         return of(
-          this.errorService.toValidationResult(
+          errorService.toValidationResult(
             normalizedError,
             this.mboxService.getPlayerId() !== '0'
           )
@@ -186,7 +203,7 @@ export class PromoValidationService {
         error
       );
 
-      throw this.errorService.normalizeMboxError(error, 'MBOX_AUTH');
+      throw this.getErrorService().normalizeMboxError(error, 'MBOX_AUTH');
     }
   }
 
@@ -194,11 +211,12 @@ export class PromoValidationService {
    * Gère les erreurs d'authentification MBox
    */
   handleMboxAuthError(errorCode: string): ValidationResult {
-    const standardizedError = this.errorService.normalizeMboxError(
+    const errorService = this.getErrorService();
+    const standardizedError = errorService.normalizeMboxError(
       errorCode,
       'MBOX_AUTH'
     );
-    return this.errorService.toValidationResult(
+    return errorService.toValidationResult(
       standardizedError,
       this.mboxService.getPlayerId() !== '0'
     );

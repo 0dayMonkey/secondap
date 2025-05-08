@@ -1,5 +1,4 @@
-// projects/landing-page/src/app/app.module.ts
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import {
@@ -9,7 +8,11 @@ import {
 } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import {
+  TranslateModule,
+  TranslateLoader,
+  TranslateService,
+} from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ButtonModule } from 'primeng/button';
 
@@ -38,6 +41,23 @@ export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
+export function appInitializerFactory(
+  translate: TranslateService,
+  mboxInfoService: MboxInfoService,
+  configService: ConfigService
+): () => Promise<any> {
+  return () => {
+    let langToLoad =
+      mboxInfoService.getLanguage() || configService.defaultLanguage;
+    langToLoad = langToLoad.toLowerCase();
+
+    if (!configService.supportedLanguages.includes(langToLoad)) {
+      langToLoad = configService.defaultLanguage;
+    }
+    return translate.use(langToLoad).toPromise();
+  };
+}
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -55,7 +75,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatIconModule,
     ButtonModule,
     TranslateModule.forRoot({
-      defaultLanguage: 'en',
+      defaultLanguage: 'fr',
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
@@ -80,6 +100,13 @@ export function HttpLoaderFactory(http: HttpClient) {
       useClass: HttpErrorInterceptor,
       multi: true,
     },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializerFactory,
+      deps: [TranslateService, MboxInfoService, ConfigService],
+      multi: true,
+    },
+    { provide: LOCALE_ID, useValue: 'fr' },
   ],
   bootstrap: [AppComponent],
 })

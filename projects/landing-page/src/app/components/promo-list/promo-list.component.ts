@@ -64,7 +64,6 @@ export class PromoListComponent implements OnInit {
     }
     this.loadPlayerData();
 
-    // Traitement des paramètres d'URL après redirection
     this.route.queryParams.subscribe((params) => {
       console.log("[PROMO_LIST] Paramètres d'URL reçus:", params);
       if (params['status']) {
@@ -150,7 +149,6 @@ export class PromoListComponent implements OnInit {
     console.log('[PROMO_LIST] Promotion sélectionnée:', promo);
     this.animationService.applyClickAnimation(element);
 
-    // Préparation des URLs pour la redirection après authentification
     const currentUrl = window.location.href.split('?')[0];
     const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
 
@@ -171,13 +169,12 @@ export class PromoListComponent implements OnInit {
         "[PROMO_LIST] Erreur lors de la demande d'authentification:",
         error
       );
-      // Vérifier si l'erreur a un code
+
       if (error && error.code) {
         this.showConfirmationScreen(
           this.errorService.toValidationResult(error, true)
         );
       } else {
-        // Sinon, utiliser le service d'erreur pour la standardiser
         this.showConfirmationScreen(
           this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR')
         );
@@ -185,7 +182,6 @@ export class PromoListComponent implements OnInit {
     }
   }
 
-  // Méthode pour gérer les retours d'authentification par URL
   handleAuthResult(params: any): void {
     const status = params['status'];
     const promoId = parseInt(params['promoId'] || '0', 10);
@@ -196,16 +192,13 @@ export class PromoListComponent implements OnInit {
 
     switch (status) {
       case 'success':
-        // Authentification réussie
         console.log(
           '[PROMO_LIST] Authentification réussie, vérification de la promotion'
         );
 
         if (code) {
-          // C'est un code saisi manuellement, on doit valider le code
           this.validateManualCode(code);
         } else if (promoId) {
-          // C'est une promotion sélectionnée, on doit l'appliquer
           this.applyPromotion(promoId, params);
         } else {
           console.error(
@@ -215,7 +208,6 @@ export class PromoListComponent implements OnInit {
         break;
 
       case 'failure':
-        // Échec de l'authentification (PIN incorrect)
         console.log("[PROMO_LIST] Échec de l'authentification (PIN incorrect)");
         this.showConfirmationScreen(
           this.promoValidationService.handleMboxAuthError('PIN_INVALID')
@@ -223,7 +215,6 @@ export class PromoListComponent implements OnInit {
         break;
 
       case 'error':
-        // Erreur technique de la MBox
         console.log("[PROMO_LIST] Erreur technique lors de l'authentification");
         this.showConfirmationScreen(
           this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR')
@@ -239,7 +230,6 @@ export class PromoListComponent implements OnInit {
     }
   }
 
-  // Validation d'un code saisi manuellement après authentification réussie
   validateManualCode(code: string): void {
     console.log(
       '[PROMO_LIST] Validation du code manuel après auth réussie:',
@@ -251,10 +241,8 @@ export class PromoListComponent implements OnInit {
         console.log('[PROMO_LIST] Résultat de validation du code:', result);
 
         if (result.isSuccess && result.promoId) {
-          // Le code est valide, on applique la promotion
           this.applyValidatedPromotion(result.promoId, result);
         } else {
-          // Le code est invalide, on affiche une erreur
           this.showConfirmationScreen(result);
         }
       },
@@ -274,7 +262,6 @@ export class PromoListComponent implements OnInit {
     });
   }
 
-  // Application d'une promotion sélectionnée après authentification réussie
   applyPromotion(promoId: number, params: any): void {
     console.log(
       '[PROMO_LIST] Application de la promotion après auth réussie:',
@@ -284,7 +271,6 @@ export class PromoListComponent implements OnInit {
     this.promoValidationService.applyValidatedPromo(promoId).subscribe({
       next: (result) => {
         if (result.isSuccess) {
-          // Enrichir le résultat avec les infos de la promotion
           const enrichedResult: ValidationResult = {
             ...result,
             isSuccess: true,
@@ -299,7 +285,7 @@ export class PromoListComponent implements OnInit {
             enrichedResult
           );
           this.showConfirmationScreen(enrichedResult);
-          this.loadPromotions(); // Recharger la liste des promotions
+          this.loadPromotions();
         } else {
           console.log(
             "[PROMO_LIST] Échec de l'application de la promotion:",
@@ -324,7 +310,6 @@ export class PromoListComponent implements OnInit {
     });
   }
 
-  // Application d'une promotion validée après authentification et validation réussies
   applyValidatedPromotion(
     promoId: number,
     validationResult: ValidationResult
@@ -334,7 +319,6 @@ export class PromoListComponent implements OnInit {
     this.promoValidationService.applyValidatedPromo(promoId).subscribe({
       next: (result) => {
         if (result.isSuccess) {
-          // Combiner les résultats de validation et d'application
           const finalResult: ValidationResult = {
             isSuccess: true,
             isMember: true,
@@ -349,7 +333,7 @@ export class PromoListComponent implements OnInit {
             finalResult
           );
           this.showConfirmationScreen(finalResult);
-          this.loadPromotions(); // Recharger la liste des promotions
+          this.loadPromotions();
         } else {
           console.log(
             "[PROMO_LIST] Échec de l'application de la promotion validée:",
@@ -433,9 +417,6 @@ export class PromoListComponent implements OnInit {
 
   validateEnteredCode(code: string): void {
     console.log('[PROMO_LIST] Code saisi:', code);
-    // Cette méthode est appelée lorsque l'utilisateur saisit un code
-    // Mais l'authentification est gérée par le composant PinCodeComponent
-    // et la validation se fait après le retour de l'authentification
   }
 
   showConfirmationScreen(data: ValidationResult): void {
