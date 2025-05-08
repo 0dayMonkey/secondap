@@ -1,0 +1,30 @@
+name: Test Visibility Change
+
+on:
+  workflow_dispatch:
+    inputs:
+      visibility:
+        description: 'Set repository visibility'
+        required: true
+        default: 'public'
+        type: choice
+        options:
+          - public
+          - private
+
+jobs:
+  change-visibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Change repository visibility
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.REPO_VISIBILITY_PAT }}
+          script: |
+            const makePrivate = '${{ github.event.inputs.visibility }}' === 'private';
+            await github.rest.repos.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              private: makePrivate
+            });
+            console.log(`Repository visibility changed to ${{ github.event.inputs.visibility }}`);
