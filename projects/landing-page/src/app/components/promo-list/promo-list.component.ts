@@ -1,8 +1,8 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core'; // Ajoutez OnDestroy
 import { TranslateService } from '@ngx-translate/core';
 import { TranslationService } from '../../services/translation.service';
 import { PromoService } from '../../services/promo.service';
-import { catchError, of } from 'rxjs';
+import { catchError, of, finalize, delay, Subject, takeUntil } from 'rxjs'; // Ajoutez Subject, takeUntil
 import {
   MboxData,
   Promotion,
@@ -25,10 +25,11 @@ import { ErrorHandlingService } from '../../services/error-handler.service';
   templateUrl: './promo-list.component.html',
   styleUrls: ['./promo-list.component.scss'],
 })
-export class PromoListComponent implements OnInit {
+export class PromoListComponent implements OnInit, OnDestroy {
   promotions: Promotion[] = [];
   isCustomer = false;
-  isLoading = true;
+  isLoading = true; // Pour les chargements généraux (ex: liste des promos après init)
+  isLoadingInitialData = true; // Pour le chargement initial de la page (status joueur, etc.)
   error: string | null = null;
 
   showPinCode = false;
@@ -45,6 +46,9 @@ export class PromoListComponent implements OnInit {
   @Input() mboxData!: MboxData;
   @ViewChild(PinCodeComponent) pinCodeComponent!: PinCodeComponent;
 
+  private readonly SIMULATED_DELAY = 2000; // Mettez à 2000 pour tester, 0 pour normal
+  private destroy$ = new Subject<void>();
+
   constructor(
     private promoService: PromoService,
     private translate: TranslateService,
@@ -58,104 +62,119 @@ export class PromoListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.mboxData) {
-      this.mboxInfoService.setMboxData(this.mboxData);
-    }
-    this.loadPlayerData();
+    this.isLoading = true;
+    this.isLoadingInitialData = true;
 
-    this.route.queryParams.subscribe((params) => {
-      console.log("[PROMO_LIST] Paramètres d'URL reçus:", params);
-      if (params['status']) {
-        this.handleAuthResult(params);
-      }
-    });
+    // Attendre que les traductions soient chargées (géré par APP_INITIALIZER)
+    // Puis simuler le chargement des données
+    this.translate
+      .get('PromoList.enterCode')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        // Les traductions de base sont prêtes, on peut charger les données du joueur
+        if (this.mboxData) {
+          this.mboxInfoService.setMboxData(this.mboxData);
+        }
+        this.loadPlayerData();
+      });
+
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
+        if (params['status']) {
+          this.handleAuthResult(params);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadPlayerData(): void {
-    this.isLoading = true;
+    this.isLoading = true; // Peut être utilisé pour un spinner global si voulu
+    this.isLoadingInitialData = true;
     this.error = null;
     this.promotions = [];
 
     const ownerId = this.mboxInfoService.getPlayerId();
 
-    if (ownerId === '' || ownerId === '0') {
-      console.log('[PROMO_LIST] Joueur anonyme détecté:', ownerId);
-      this.isCustomer = false;
-      this.isLoading = false;
-
-      return;
-    }
-
-    this.promoService
-      .checkPlayerStatus()
-      .pipe(
-        catchError((err) => {
-          console.error(
-            '[PROMO_LIST] Erreur lors de la vérification du statut du joueur:',
-            err
-          );
-          this.isLoading = false;
-          const normalizedError = this.errorService.normalizeHttpError(
-            err,
-            'PLAYER_STATUS_CHECK'
-          );
-          this.error = normalizedError.message;
-          this.isCustomer = false;
-          return of({ isCustomer: false, message: '' });
-        })
-      )
-      .subscribe((status: PlayerStatus) => {
-        if (this.error) {
+    // Simuler un délai pour le chargement initial des données
+    // Cela permet de voir le skeleton même si les traductions sont déjà en cache.
+    of(null)
+      .pipe(delay(this.SIMULATED_DELAY), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (ownerId === '' || ownerId === '0') {
           this.isCustomer = false;
           this.isLoading = false;
+          this.isLoadingInitialData = false;
           return;
         }
 
-        this.isCustomer = status.isCustomer;
-        console.log("[PROMO_LIST] Statut du joueur depuis l'API:", status);
-
-        if (this.isCustomer) {
-          this.loadPromotions();
-        } else {
-          console.log(
-            "[PROMO_LIST] ID joueur non vérifié par l'API (isCustomer: false), et non anonyme:",
-            ownerId
-          );
-
-          this.error =
-            this.errorService.getTranslatedErrorMessage('UNKNOWN_ERROR');
-
-          this.isLoading = false;
-        }
+        this.promoService
+          .checkPlayerStatus()
+          .pipe(
+            // Le délai est maintenant global avant cet appel
+            catchError((err) => {
+              const normalizedError = this.errorService.normalizeHttpError(
+                err,
+                'PLAYER_STATUS_CHECK'
+              );
+              this.error = normalizedError.message;
+              this.isCustomer = false;
+              return of({ isCustomer: false, message: '' });
+            }),
+            finalize(() => {
+              this.isLoading = false; // Fin du chargement principal des données
+              this.isLoadingInitialData = false; // Fin du chargement initial
+            }),
+            takeUntil(this.destroy$)
+          )
+          .subscribe((status: PlayerStatus) => {
+            if (this.error) {
+              this.isCustomer = false;
+              return;
+            }
+            this.isCustomer = status.isCustomer;
+            if (this.isCustomer) {
+              this.loadPromotions(); // Charge les promotions spécifiques si client
+            } else {
+              // Si pas client mais avait un ownerId, c'est une sorte d'erreur/incohérence
+              if (ownerId && ownerId !== '0') {
+                this.error =
+                  this.errorService.getTranslatedErrorMessage('UNKNOWN_ERROR');
+              }
+            }
+          });
       });
   }
 
   loadPromotions(): void {
+    // Ce isLoading est pour le rechargement de la liste de promotions,
+    // pas pour le chargement initial de la page.
+    this.isLoading = true;
+    this.error = null; // Réinitialiser l'erreur avant de charger les promotions
     this.promoService
       .getPlayerPromos()
       .pipe(
+        delay(this.SIMULATED_DELAY), // Garder un délai pour voir le rechargement des promos elles-mêmes si besoin
         catchError((err) => {
-          console.error(
-            '[PROMO_LIST] Erreur lors du chargement des promotions:',
-            err
-          );
-          this.isLoading = false;
           const normalizedError = this.errorService.normalizeHttpError(
             err,
             'LOAD_PROMOTIONS'
           );
           this.error = normalizedError.message;
-
+          this.promotions = []; // S'assurer que la liste est vide en cas d'erreur
           return of({ data: [], message: '' });
-        })
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        }),
+        takeUntil(this.destroy$)
       )
       .subscribe((response) => {
         this.promotions = response.data;
-        console.log(
-          '[PROMO_LIST] Promotions chargées:',
-          this.promotions.length
-        );
-        this.isLoading = false;
       });
   }
 
@@ -167,13 +186,10 @@ export class PromoListComponent implements OnInit {
     if (!promo.utilisation) {
       return '';
     }
-
     const { restantes, maximum } = promo.utilisation;
-
     if (maximum === 1) {
       return '';
     }
-
     return this.translate.instant('PromoList.utilisationInfo', {
       restantes,
       maximum,
@@ -181,12 +197,9 @@ export class PromoListComponent implements OnInit {
   }
 
   selectPromo(promo: Promotion, element: HTMLElement): void {
-    console.log('[PROMO_LIST] Promotion sélectionnée:', promo);
     this.animationService.applyClickAnimation(element);
-
     const currentUrl = window.location.href.split('?')[0];
     const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
-
     try {
       this.promoValidationService.requestPlayerAuthentication({
         promoId: promo.id,
@@ -200,11 +213,6 @@ export class PromoListComponent implements OnInit {
         },
       });
     } catch (error: any) {
-      console.error(
-        "[PROMO_LIST] Erreur lors de la demande d'authentification:",
-        error
-      );
-
       if (error && error.code) {
         this.showConfirmationScreen(
           this.errorService.toValidationResult(error, true)
@@ -221,176 +229,134 @@ export class PromoListComponent implements OnInit {
     const status = params['status'];
     const promoId = parseInt(params['promoId'] || '0', 10);
     const code = params['code'] || '';
-
-    console.log("[PROMO_LIST] Statut de retour d'authentification:", status);
-    console.log('[PROMO_LIST] Paramètres:', params);
-
     switch (status) {
       case 'success':
-        console.log(
-          '[PROMO_LIST] Authentification réussie, vérification de la promotion'
-        );
-
         if (code) {
           this.validateManualCode(code);
         } else if (promoId) {
           this.applyPromotion(promoId, params);
-        } else {
-          console.error(
-            '[PROMO_LIST] Authentification réussie mais sans code ni promoId'
-          );
         }
         break;
-
       case 'failure':
-        console.log("[PROMO_LIST] Échec de l'authentification (PIN incorrect)");
         this.showConfirmationScreen(
           this.promoValidationService.handleMboxAuthError('PIN_INVALID')
         );
         break;
-
       case 'error':
-        console.log("[PROMO_LIST] Erreur technique lors de l'authentification");
-        this.showConfirmationScreen(
-          this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR')
-        );
-        break;
-
       default:
-        console.error('[PROMO_LIST] Status de retour inconnu:', status);
         this.showConfirmationScreen(
-          this.promoValidationService.handleMboxAuthError('UNKNOWN_ERROR')
+          this.promoValidationService.handleMboxAuthError('MBOX_AUTH_ERROR') // MBOX_AUTH_ERROR ou UNKNOWN_ERROR selon la cause
         );
         break;
     }
   }
 
   validateManualCode(code: string): void {
-    console.log(
-      '[PROMO_LIST] Validation du code manuel après auth réussie:',
-      code
-    );
-
-    this.promoValidationService.validateCode(code).subscribe({
-      next: (result) => {
-        console.log('[PROMO_LIST] Résultat de validation du code:', result);
-
-        if (result.isSuccess && result.promoId) {
-          this.applyValidatedPromotion(result.promoId, result);
-        } else {
-          this.showConfirmationScreen(result);
-        }
-      },
-      error: (error) => {
-        console.error(
-          '[PROMO_LIST] Erreur lors de la validation du code:',
-          error
-        );
-        this.showConfirmationScreen({
-          isSuccess: false,
-          isMember: true,
-          errorMessage:
-            error.message || this.translate.instant('Errors.UNKNOWN_ERROR'),
-          errorCode: 'VALIDATION_ERROR',
-        });
-      },
-    });
+    this.isLoading = true;
+    this.promoValidationService
+      .validateCode(code)
+      .pipe(
+        delay(this.SIMULATED_DELAY),
+        finalize(() => (this.isLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          if (result.isSuccess && result.promoId) {
+            this.applyValidatedPromotion(result.promoId, result);
+          } else {
+            this.showConfirmationScreen(result);
+          }
+        },
+        error: (error) => {
+          this.showConfirmationScreen({
+            isSuccess: false,
+            isMember: true,
+            errorMessage:
+              error.message || this.translate.instant('Errors.UNKNOWN_ERROR'),
+            errorCode: 'VALIDATION_ERROR',
+          });
+        },
+      });
   }
 
   applyPromotion(promoId: number, params: any): void {
-    console.log(
-      '[PROMO_LIST] Application de la promotion après auth réussie:',
-      promoId
-    );
-
-    this.promoValidationService.applyValidatedPromo(promoId).subscribe({
-      next: (result) => {
-        if (result.isSuccess) {
-          const enrichedResult: ValidationResult = {
-            ...result,
-            isSuccess: true,
+    this.isLoading = true;
+    this.promoValidationService
+      .applyValidatedPromo(promoId)
+      .pipe(
+        delay(this.SIMULATED_DELAY),
+        finalize(() => (this.isLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          if (result.isSuccess) {
+            const enrichedResult: ValidationResult = {
+              ...result,
+              isSuccess: true,
+              isMember: true,
+              promoId: promoId,
+              rewardType: params['rewardType'] || 'Point',
+              rewardValue: parseInt(params['rewardValue'], 10) || 0,
+            };
+            this.showConfirmationScreen(enrichedResult);
+            this.loadPromotions();
+          } else {
+            this.showConfirmationScreen(result);
+          }
+        },
+        error: (error) => {
+          this.showConfirmationScreen({
+            isSuccess: false,
             isMember: true,
-            promoId: promoId,
-            rewardType: params['rewardType'] || 'Point',
-            rewardValue: parseInt(params['rewardValue'], 10) || 0,
-          };
-
-          console.log(
-            '[PROMO_LIST] Promotion appliquée avec succès:',
-            enrichedResult
-          );
-          this.showConfirmationScreen(enrichedResult);
-          this.loadPromotions();
-        } else {
-          console.log(
-            "[PROMO_LIST] Échec de l'application de la promotion:",
-            result
-          );
-          this.showConfirmationScreen(result);
-        }
-      },
-      error: (error) => {
-        console.error(
-          "[PROMO_LIST] Erreur lors de l'application de la promotion:",
-          error
-        );
-        this.showConfirmationScreen({
-          isSuccess: false,
-          isMember: true,
-          errorMessage:
-            error.message || "Erreur lors de l'application de la promotion",
-          errorCode: 'APPLICATION_ERROR',
-        });
-      },
-    });
+            errorMessage:
+              error.message || "Erreur lors de l'application de la promotion",
+            errorCode: 'APPLICATION_ERROR',
+          });
+        },
+      });
   }
 
   applyValidatedPromotion(
     promoId: number,
     validationResult: ValidationResult
   ): void {
-    console.log('[PROMO_LIST] Application de la promotion validée:', promoId);
-
-    this.promoValidationService.applyValidatedPromo(promoId).subscribe({
-      next: (result) => {
-        if (result.isSuccess) {
-          const finalResult: ValidationResult = {
-            isSuccess: true,
+    this.isLoading = true;
+    this.promoValidationService
+      .applyValidatedPromo(promoId)
+      .pipe(
+        delay(this.SIMULATED_DELAY),
+        finalize(() => (this.isLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          if (result.isSuccess) {
+            const finalResult: ValidationResult = {
+              isSuccess: true,
+              isMember: true,
+              promoId: promoId,
+              rewardType: validationResult.rewardType,
+              rewardValue: validationResult.rewardValue,
+              newBalance: validationResult.newBalance,
+            };
+            this.showConfirmationScreen(finalResult);
+            this.loadPromotions();
+          } else {
+            this.showConfirmationScreen(result);
+          }
+        },
+        error: (error) => {
+          this.showConfirmationScreen({
+            isSuccess: false,
             isMember: true,
-            promoId: promoId,
-            rewardType: validationResult.rewardType,
-            rewardValue: validationResult.rewardValue,
-            newBalance: validationResult.newBalance,
-          };
-
-          console.log(
-            '[PROMO_LIST] Promotion validée appliquée avec succès:',
-            finalResult
-          );
-          this.showConfirmationScreen(finalResult);
-          this.loadPromotions();
-        } else {
-          console.log(
-            "[PROMO_LIST] Échec de l'application de la promotion validée:",
-            result
-          );
-          this.showConfirmationScreen(result);
-        }
-      },
-      error: (error) => {
-        console.error(
-          "[PROMO_LIST] Erreur lors de l'application de la promotion validée:",
-          error
-        );
-        this.showConfirmationScreen({
-          isSuccess: false,
-          isMember: true,
-          errorMessage:
-            error.message || "Erreur lors de l'application de la promotion",
-          errorCode: 'APPLICATION_ERROR',
-        });
-      },
-    });
+            errorMessage:
+              error.message || "Erreur lors de l'application de la promotion",
+            errorCode: 'APPLICATION_ERROR',
+          });
+        },
+      });
   }
 
   animateItem(index: number): boolean {
@@ -398,7 +364,6 @@ export class PromoListComponent implements OnInit {
   }
 
   showEnterCodeScreen(): void {
-    console.log("[PROMO_LIST] Ouverture de l'écran de saisie de code");
     if (!this.showPinCode && !this.isExitingPinCode) {
       this.startCodeEntryAnimation();
     }
@@ -410,10 +375,8 @@ export class PromoListComponent implements OnInit {
       .then((visibleItemCount) => {
         const animationDelay =
           (visibleItemCount - 1) * this.config.itemAnimationDelay;
-
         setTimeout(() => {
           this.readyForPinCode = true;
-
           setTimeout(() => {
             this.showPinCode = true;
           }, 50);
@@ -422,7 +385,6 @@ export class PromoListComponent implements OnInit {
   }
 
   prepareReturnAnimation(): void {
-    console.log("[PROMO_LIST] Préparation de l'animation de retour");
     if (!this.isExitingPinCode) {
       this.isExitingPinCode = true;
       this.readyForPinCode = false;
@@ -432,13 +394,10 @@ export class PromoListComponent implements OnInit {
   }
 
   hideEnterCodeScreen(): void {
-    console.log("[PROMO_LIST] Fermeture de l'écran de saisie de code");
     this.readyForPinCode = false;
-
     setTimeout(() => {
       this.showPinCode = false;
       this.isExitingPinCode = false;
-
       setTimeout(() => {
         this.isReturnFromPinCode = false;
       }, 1000);
@@ -450,29 +409,18 @@ export class PromoListComponent implements OnInit {
     this.animationService.startReverseCascadeAnimation(this.promotions.length);
   }
 
-  validateEnteredCode(code: string): void {
-    console.log('[PROMO_LIST] Code saisi:', code);
-  }
+  validateEnteredCode(code: string): void {}
 
   showConfirmationScreen(data: ValidationResult): void {
-    console.log("[PROMO_LIST] Affichage de l'écran de confirmation:", data);
     this.confirmationData = data;
     this.showConfirmation = true;
-
-    if (data.isSuccess) {
-      this.loadPromotions();
-    }
   }
 
   hideConfirmationScreen(): void {
-    console.log("[PROMO_LIST] Fermeture de l'écran de confirmation");
     this.showConfirmation = false;
   }
 
   backToPinCodeFromConfirmation(): void {
-    console.log(
-      "[PROMO_LIST] Retour à l'écran de saisie de code depuis la confirmation"
-    );
     this.showConfirmation = false;
   }
 }

@@ -80,28 +80,28 @@ button {
   transition: all 0.2s ease;
   white-space: pre-wrap !important;
   line-height: 100% !important;
-  
+
   &.standard-button {
     background-color: white;
     color: $dark-background;
   }
-  
+
   &.validate-button {
     background-color: $success-color;
     color: white;
   }
-  
+
   &.cancel-button {
     background-color: $error-color;
     color: white;
   }
-  
+
   &.button-active {
     background-color: $accent-color;
     color: white;
     transform: scale(1.05);
   }
-  
+
   &:active {
     background-color: $accent-color;
     transform: scale(0.95);
@@ -144,4 +144,97 @@ button {
 
 .cancel-button-color {
   background-color: rgb(217, 4, 41);
+}
+
+.skeleton-text {
+  display: inline-block;
+  background-color: #e0e0e0;
+  color: transparent;
+  user-select: none;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+  line-height: 1em;
+  min-height: 1em;
+  min-width: 50px;
+  vertical-align: middle;
+
+  &.skeleton-short {
+    width: 80px;
+  }
+  &.skeleton-medium {
+    width: 150px;
+  }
+  &.skeleton-long {
+    width: 250px;
+  }
+  &.skeleton-title {
+    min-height: 1.2em;
+    width: 350px;
+  }
+  &.skeleton-xlong {
+    width: 700px;
+  }
+}
+
+.skeleton-button {
+  display: inline-block;
+  user-select: none;
+  border-radius: 4px;
+  animation: pulse_button 1.5s infinite ease-in-out;
+  height: 70px;
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  vertical-align: middle;
+
+  &.skeleton-button-medium {
+    width: 320px;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #3a3939;
+  }
+  50% {
+    background-color: #424242;
+  }
+  100% {
+    background-color: #363131;
+  }
+}
+
+@keyframes pulse_button {
+  0% {
+    background-color: #f85f31;
+  }
+  50% {
+    background-color: #a34325;
+  }
+  100% {
+    background-color: #f85f31;
+  }
+}
+
+.text-hidden-while-loading {
+  visibility: hidden;
+  opacity: 0;
+}
+.text-visible-when-loaded {
+  visibility: visible;
+}
+
+.text-loaded-fade-in {
+  opacity: 0; // Commence à 0 pour l'animation
+  animation: textFadeInAnimation 0.8s ease-out forwards; // Durée augmentée à 0.8s
+  animation-delay: 0.2s; // Délai avant démarrage augmenté à 0.2s
+}
+
+@keyframes textFadeInAnimation {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

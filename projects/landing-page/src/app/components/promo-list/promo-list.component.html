@@ -1,6 +1,6 @@
 <div class="promo-container">
   <div class="promo-main-view" [class.hidden]="readyForPinCode">
-    <div class="promo-item manual-code" 
+    <div class="promo-item manual-code"
          (click)="showEnterCodeScreen()"
          [ngClass]="{'slide-left': animateItem(0)}">
       <div class="icon-container">
@@ -9,24 +9,32 @@
         </div>
       </div>
       <div class="promo-content">
-        <span class="promo-title">{{"PromoList.enterCode" | translate}}</span>
+        <ng-container *ngIf="isLoadingInitialData && !error; else enterCodeText">
+          <span class="skeleton-text skeleton-medium"></span>
+        </ng-container>
+        <ng-template #enterCodeText>
+          <span class="promo-title text-hidden-while-loading"
+                [class.text-visible-when-loaded]="!isLoadingInitialData || error"
+                [class.text-loaded-fade-in]="!isLoadingInitialData || error">
+            {{"PromoList.enterCode" | translate}}
+          </span>
+        </ng-template>
       </div>
       <div class="arrow-icon">
         <span>›</span>
       </div>
     </div>
-    
-    <div class="loader-container" *ngIf="isLoading">
-      <div class="spinner"></div>
-    </div>
-  
-    <div class="error-message" *ngIf="error">
+
+    <div class="loader-container" *ngIf="isLoading && !isLoadingInitialData && !error && !showPinCode && !showConfirmation && promotions.length === 0 && isCustomer">
+      </div>
+
+    <div class="error-message" *ngIf="error && !isLoadingInitialData">
       <p>{{ error }}</p>
     </div>
-  
-    <ng-container *ngIf="!isLoading && isCustomer && promotions.length > 0">
-      <div class="promo-item" 
-           *ngFor="let promo of promotions; let i = index" 
+
+    <ng-container *ngIf="!isLoadingInitialData && !isLoading && isCustomer && promotions.length > 0 && !error">
+      <div class="promo-item"
+           *ngFor="let promo of promotions; let i = index"
            #promoElement
            (click)="selectPromo(promo, promoElement)"
            [ngClass]="{'slide-left': animateItem(i+1)}">
@@ -41,29 +49,41 @@
         </div>
       </div>
     </ng-container>
-  
-    <div class="no-promo-message" 
-         *ngIf="!isLoading && ((!isCustomer) || (isCustomer && promotions.length === 0))"
-         [ngClass]="{'fade-in': isReturnFromPinCode}">
-      <div class="icon-container">
-        <div class="question-icon">?</div>
-      </div>
-      <p>{{"PromoList.emptyInventory" | translate}}</p>
+    <div class="no-promo-message"
+         *ngIf="!error && ((!isLoadingInitialData && !isCustomer) || (!isLoadingInitialData && isCustomer && promotions.length === 0 && !isLoading))"
+         [ngClass]="{'fade-in': isReturnFromPinCode || !isLoadingInitialData}">
+      <ng-container *ngIf="isLoadingInitialData && !error; else noPromoContent">
+        <div class="icon-container">
+          <div class="skeleton-text skeleton-short" style="width: 60px; height: 60px; border-radius: 50%;"></div>
+        </div>
+        <span class="skeleton-text skeleton-long" style="width: 300px;"></span>
+      </ng-container>
+      <ng-template #noPromoContent>
+        <div class="icon-container">
+          <div class="question-icon">?</div>
+        </div>
+        <p class="text-hidden-while-loading"
+           [class.text-visible-when-loaded]="!isLoadingInitialData"
+           [class.text-loaded-fade-in]="!isLoadingInitialData">
+          {{"PromoList.emptyInventory" | translate}}
+        </p>
+      </ng-template>
     </div>
   </div>
 
-  <app-pin-code 
+  <app-pin-code
     *ngIf="showPinCode"
     [pinTitle]="'PromoList.enterPromoCode' | translate"
     [placeholderText]="'PromoList.codeInputPlaceholder' | translate"
     [validateButtonText]="'PromoList.validate' | translate"
     [clearButtonText]="'C'"
+    [initialLoadingState]="isLoadingInitialData"
     (cancel)="hideEnterCodeScreen()"
     (startExitAnimation)="prepareReturnAnimation()"
     (validate)="validateEnteredCode($event)"
     (showConfirmation)="showConfirmationScreen($event)">
   </app-pin-code>
-  
+
   <app-confirmation
     *ngIf="showConfirmation"
     [data]="confirmationData"

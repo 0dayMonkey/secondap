@@ -1,4 +1,3 @@
-// projects/landing-page/src/app/components/pin-code/pin-code.component.ts
 import {
   Component,
   EventEmitter,
@@ -6,6 +5,9 @@ import {
   Output,
   ElementRef,
   OnInit,
+  OnDestroy,
+  OnChanges, // Ajoutez OnChanges
+  SimpleChanges, // Ajoutez SimpleChanges
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { PinCodeService } from '../../services/pin-code.service';
@@ -16,17 +18,21 @@ import {
   PlayerAuthRequest,
 } from '../../services/promo-validation.service';
 import { ErrorHandlingService } from '../../services/error-handler.service';
+import { Subject, of } from 'rxjs'; // Ajoutez of
+import { takeUntil, finalize, delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-pin-code',
   templateUrl: './pin-code.component.html',
   styleUrls: ['./pin-code.component.scss'],
 })
-export class PinCodeComponent implements OnInit {
+export class PinCodeComponent implements OnInit, OnDestroy, OnChanges {
+  // Ajoutez OnChanges
   @Input() pinTitle: string = '';
   @Input() placeholderText: string = '';
   @Input() validateButtonText: string = '';
   @Input() clearButtonText: string = 'C';
+  @Input() initialLoadingState: boolean = true; // Nouvel Input
 
   @Output() validate = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();
@@ -36,6 +42,10 @@ export class PinCodeComponent implements OnInit {
   voucherCode: string = '';
   isExiting: boolean = false;
   isLoading: boolean = false;
+  isPinCodeLoading: boolean = true; // Pour le skeleton initial du composant
+
+  private destroy$ = new Subject<void>();
+  private readonly SIMULATED_DELAY = 0; // Mettez à 2000 pour tester, 0 pour normal
 
   constructor(
     private translate: TranslateService,
@@ -46,7 +56,39 @@ export class PinCodeComponent implements OnInit {
     private errorService: ErrorHandlingService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnChanges(changes: SimpleChanges): void {
+    // Gérez les changements de l'Input
+    if (changes['initialLoadingState']) {
+      this.isPinCodeLoading = changes['initialLoadingState'].currentValue;
+    }
+  }
+
+  ngOnInit(): void {
+    // Utilise la valeur de l'Input initialement
+    this.isPinCodeLoading = this.initialLoadingState;
+
+    // Si on veut toujours un petit délai propre à PinCode après le délai global
+    // pour s'assurer que les traductions spécifiques à PinCode sont prêtes
+    // (par exemple, si PinCode avait ses propres clés de traduction chargées dynamiquement)
+    // on pourrait faire :
+    if (this.SIMULATED_DELAY > 0 && !this.initialLoadingState) {
+      // Si pas déjà en chargement global
+      this.isPinCodeLoading = true;
+      setTimeout(() => {
+        this.isPinCodeLoading = false;
+      }, this.SIMULATED_DELAY / 2); // Un délai plus court pour le rendu
+    } else if (this.initialLoadingState) {
+      // Si initialLoadingState est true, on attend qu'il devienne false via ngOnChanges
+    } else {
+      // Si initialLoadingState est false et pas de SIMULATED_DELAY, on affiche direct.
+      this.isPinCodeLoading = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   appendDigit(digit: string): void {
     this.voucherCode += digit;
@@ -69,152 +111,105 @@ export class PinCodeComponent implements OnInit {
     if (!this.isValidCode() || this.isLoading) {
       return;
     }
-
     this.isLoading = true;
     this.validate.emit(this.voucherCode);
-
-    // On lance uniquement l'authentification du joueur
-    // La validation de la promotion se fera après succès de l'authentification
-    // via les redirections URL
     this.requestPlayerAuthentication();
   }
 
-  // Authentification du joueur uniquement
   private requestPlayerAuthentication(): void {
     const currentUrl = window.location.href.split('?')[0];
     const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
-
-    console.log("[PIN_CODE] Demande d'authentification PIN initiée");
-    console.log('[PIN_CODE] Code PIN: ' + this.voucherCode);
-
+    let promoId = 0;
     try {
-      // Extraire un ID de promotion du code (si possible)
-      let promoId = 0;
-      try {
-        promoId = parseInt(this.voucherCode.replace(/-/g, ''));
-        if (isNaN(promoId)) promoId = 0;
-      } catch (e) {
-        promoId = 0;
-      }
-
-      // Préparer les URL de redirection en incluant le code promotionnel
-      const authRequest: PlayerAuthRequest = {
-        promoId: promoId,
-        urlOnSuccess: `${baseUrl}?status=success&code=${this.voucherCode}`,
-        urlOnFailure: `${baseUrl}?status=failure&code=${this.voucherCode}`,
-        urlOnError: `${baseUrl}?status=error&code=${this.voucherCode}`,
-        customPayload: {
-          code: this.voucherCode,
-        },
-      };
-
-      console.log("[PIN_CODE] Paramètres de l'authentification:", {
-        promoId: authRequest.promoId,
-        urlOnSuccess: authRequest.urlOnSuccess,
-        urlOnFailure: authRequest.urlOnFailure,
-        urlOnError: authRequest.urlOnError,
-      });
-
-      // Demande d'authentification du joueur via la MBox
-      this.promoValidationService.requestPlayerAuthentication(authRequest);
-
-      // Si pour une raison quelconque la MBox ne redirige pas, on peut gérer un timeout
-      setTimeout(() => {
-        if (this.isLoading) {
-          console.log("[PIN_CODE] Timeout de l'authentification PIN");
-          this.isLoading = false;
-          this.handleAuthenticationError('MBOX_TIMEOUT_ERROR');
-        }
-      }, 10000); // 10 secondes de timeout
-    } catch (error) {
-      console.error(
-        "[PIN_CODE] Erreur lors de la demande d'authentification PIN:",
-        error
-      );
-      this.isLoading = false;
-      this.handleAuthenticationError('MBOX_AUTH_ERROR');
+      promoId = parseInt(this.voucherCode.replace(/-/g, ''));
+      if (isNaN(promoId)) promoId = 0;
+    } catch (e) {
+      promoId = 0;
     }
+    const authRequest: PlayerAuthRequest = {
+      promoId: promoId,
+      urlOnSuccess: `${baseUrl}?status=success&code=${this.voucherCode}`,
+      urlOnFailure: `${baseUrl}?status=failure&code=${this.voucherCode}`,
+      urlOnError: `${baseUrl}?status=error&code=${this.voucherCode}`,
+      customPayload: { code: this.voucherCode },
+    };
+
+    // Simuler un délai pour voir le skeleton du bouton "isLoading"
+    of(null)
+      .pipe(delay(this.SIMULATED_DELAY / 2), takeUntil(this.destroy$))
+      .subscribe(() => {
+        try {
+          this.promoValidationService.requestPlayerAuthentication(authRequest);
+          setTimeout(() => {
+            if (this.isLoading) {
+              this.isLoading = false;
+              this.handleAuthenticationError('MBOX_TIMEOUT_ERROR');
+            }
+          }, 10000); // 10 secondes de timeout MBox
+        } catch (error) {
+          this.isLoading = false;
+          this.handleAuthenticationError('MBOX_AUTH_ERROR');
+        }
+      });
   }
 
-  // Gestion des erreurs d'authentification MBox
   private handleAuthenticationError(errorCode: string): void {
-    console.log(
-      "[PIN_CODE] Gestion de l'erreur d'authentification:",
-      errorCode
-    );
-
-    // Utiliser le service d'erreur pour obtenir un ValidationResult standardisé
     const errorResult =
       this.promoValidationService.handleMboxAuthError(errorCode);
-
-    // Effacer le code PIN si nécessaire
     if (this.errorService.shouldClearPinCode(errorCode)) {
       this.clearCode();
     }
-
+    this.isLoading = false;
     this.exitWithConfirmation(errorResult);
   }
 
-  // Cette méthode est appelée à partir de PromoListComponent
-  // lorsque l'authentification a réussi et qu'on veut valider la promotion
   validatePromotion(promoCode: string): void {
-    this.promoValidationService.validateCode(promoCode).subscribe({
-      next: (result: ValidationResult) => {
-        this.isLoading = false;
-        console.log('[PIN_CODE] Résultat de validation promotion:', result);
-
-        if (result.isSuccess && result.promoId) {
-          // Promotion validée
-          this.clearCode();
-        } else if (
-          result.errorCode &&
-          this.errorService.shouldClearPinCode(result.errorCode)
-        ) {
-          // Échec de validation - effacer le code si nécessaire
-          console.log(
-            `[PIN_CODE] Effacement du code PIN pour erreur: ${result.errorCode}`
-          );
-          this.clearCode();
-        }
-
-        this.exitWithConfirmation(result);
-      },
-      error: (error: any) => {
-        console.error(
-          '[PIN_CODE] Erreur lors de la validation de la promotion:',
-          error
-        );
-        this.isLoading = false;
-
-        // Normaliser l'erreur et créer un ValidationResult
-        let errorResult: ValidationResult;
-
-        if (error && error.code) {
-          // Si l'erreur a déjà un code, utiliser directement
-          errorResult = this.errorService.toValidationResult(error, false);
-
-          // Effacer le code PIN si nécessaire
-          if (
-            error.requirePinClear ||
-            this.errorService.shouldClearPinCode(error.code)
+    this.isLoading = true;
+    this.promoValidationService
+      .validateCode(promoCode)
+      .pipe(
+        delay(this.SIMULATED_DELAY),
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (result: ValidationResult) => {
+          if (result.isSuccess && result.promoId) {
+            this.clearCode();
+          } else if (
+            result.errorCode &&
+            this.errorService.shouldClearPinCode(result.errorCode)
           ) {
             this.clearCode();
           }
-        } else {
-          // Sinon, créer une erreur de type validation
-          errorResult =
-            this.promoValidationService.handleMboxAuthError('VALIDATION_ERROR');
-          this.clearCode();
-        }
-
-        this.exitWithConfirmation(errorResult);
-      },
-    });
+          this.exitWithConfirmation(result);
+        },
+        error: (error: any) => {
+          let errorResult: ValidationResult;
+          if (error && error.code) {
+            errorResult = this.errorService.toValidationResult(error, false);
+            if (
+              error.requirePinClear ||
+              this.errorService.shouldClearPinCode(error.code)
+            ) {
+              this.clearCode();
+            }
+          } else {
+            errorResult =
+              this.promoValidationService.handleMboxAuthError(
+                'VALIDATION_ERROR'
+              );
+            this.clearCode();
+          }
+          this.exitWithConfirmation(errorResult);
+        },
+      });
   }
 
   private exitWithConfirmation(result: ValidationResult): void {
     this.startExitAnimation.emit();
-
     setTimeout(() => {
       this.showConfirmation.emit(result);
     }, this.config.viewTransitionDelay);
@@ -223,16 +218,13 @@ export class PinCodeComponent implements OnInit {
   goBack(skipEmit: boolean = false): void {
     if (!this.isExiting) {
       this.isExiting = true;
-
       const container = this.el.nativeElement.querySelector(
         '.pin-code-container'
       );
       container.classList.add('slide-out');
-
       if (!skipEmit) {
         this.startExitAnimation.emit();
       }
-
       setTimeout(() => {
         this.cancel.emit();
         this.isExiting = false;
