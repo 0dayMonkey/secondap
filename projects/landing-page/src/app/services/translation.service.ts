@@ -1,22 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import {
   TranslateService,
   LangChangeEvent,
   TranslationChangeEvent,
-} from '@ngx-translate/core'; // Importez les événements
+} from '@ngx-translate/core';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
 import { ConfigService } from 'projects/common/services/config.service';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs'; // Importez BehaviorSubject et Observable
-import { filter } from 'rxjs/operators'; // Importez filter
+import { BehaviorSubject, Observable, Subscription, of } from 'rxjs';
+import { catchError, filter, take, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
-export class TranslationService {
-  private mboxSub: Subscription; // Gardez une référence pour se désabonner
-  private langChangeSub: Subscription; // Pour les changements de langue effectifs
-  private translationsLoaded = new BehaviorSubject<boolean>(false);
-  public translationsLoaded$: Observable<boolean> =
+export class TranslationService implements OnDestroy {
+  private mboxSub: Subscription;
+  private langChangeSub: Subscription;
+  private translationChangeSub: Subscription;
+  private readonly translationsLoaded = new BehaviorSubject<boolean>(false);
+  public readonly translationsLoaded$: Observable<boolean> =
     this.translationsLoaded.asObservable();
 
   constructor(
@@ -24,36 +25,39 @@ export class TranslationService {
     private mboxInfoService: MboxInfoService,
     private config: ConfigService
   ) {
-    // Gérer le chargement initial
     this.translateService.setDefaultLang(this.config.defaultLanguage);
-    const initialLang = (
-      this.mboxInfoService.getLanguage() || this.config.defaultLanguage
-    ).toLowerCase();
-    this.updateLanguage(initialLang, true); // true pour indiquer le chargement initial
 
-    // S'abonner aux changements de langue futurs venant de Mbox
+    this.translationChangeSub =
+      this.translateService.onTranslationChange.subscribe(
+        (event: TranslationChangeEvent) => {
+          this.translationsLoaded.next(true);
+        }
+      );
+
+    this.langChangeSub = this.translateService.onLangChange.subscribe(
+      (event: LangChangeEvent) => {
+        if (this.translationsLoaded.value) {
+          this.translationsLoaded.next(false);
+        }
+      }
+    );
+
     this.mboxSub = this.mboxInfoService.mboxData$
       .pipe(
-        filter((data) => !!data.twoLetterISOLanguageName) // S'assurer que la langue est définie
+        filter(
+          (data) =>
+            !!data.twoLetterISOLanguageName &&
+            data.twoLetterISOLanguageName.toLowerCase() !==
+              this.translateService.currentLang?.toLowerCase()
+        )
       )
       .subscribe((data) => {
         this.updateLanguage(data.twoLetterISOLanguageName);
       });
-
-    // S'abonner à l'événement de chargement des traductions de ngx-translate
-    this.langChangeSub = this.translateService.onTranslationChange.subscribe(
-      () => {
-        this.translationsLoaded.next(true);
-        console.log(
-          'Translations successfully loaded for language:',
-          this.translateService.currentLang
-        );
-      }
-    );
   }
 
-  updateLanguage(lang?: string, isInitialLoad: boolean = false): void {
-    this.translationsLoaded.next(false); // Mettre à false avant de charger une nouvelle langue
+  public updateLanguage(lang?: string): void {
+    this.translationsLoaded.next(false);
     const languageToUse = (
       lang ||
       this.mboxInfoService.getLanguage() ||
@@ -65,41 +69,67 @@ export class TranslationService {
       effectiveLang = languageToUse;
     }
 
-    console.log(`Attempting to load language: ${effectiveLang}`);
-    this.translateService.use(effectiveLang).subscribe({
-      next: () => {
-        // Le onTranslationChange devrait maintenant se déclencher
-        // si ce n'est pas déjà fait, ou si la langue changeait effectivement.
-        // Parfois, .use() peut résoudre avant que onTranslationChange ne se déclenche si les traductions sont déjà en cache
-        // Pour être sûr, on peut mettre translationsLoaded à true ici aussi, mais onTranslationChange est plus fiable
-        // pour le moment où les fichiers de traduction sont réellement traités.
-        // this.translationsLoaded.next(true); // Déplacé vers onTranslationChange
-      },
-      error: (err) => {
-        console.error(`Error loading language ${effectiveLang}:`, err);
-        // En cas d'erreur de chargement, on revient à la langue par défaut
-        if (effectiveLang !== this.config.defaultLanguage) {
-          console.warn(
-            `Falling back to default language: ${this.config.defaultLanguage}`
-          );
-          this.translateService
-            .use(this.config.defaultLanguage)
-            .subscribe(() => {
-              // this.translationsLoaded.next(true); // Déplacé vers onTranslationChange
-            });
-        } else {
-          this.translationsLoaded.next(true); // Si même la langue par défaut échoue, on considère quand même chargé pour éviter un blocage.
-        }
-      },
-    });
+    this.translateService
+      .use(effectiveLang)
+      .pipe(
+        take(1),
+        tap(() => {
+          const currentTranslations =
+            this.translateService.translations[
+              this.translateService.currentLang
+            ];
+          if (
+            currentTranslations &&
+            Object.keys(currentTranslations).length > 0
+          ) {
+            if (!this.translationsLoaded.value) {
+              this.translationsLoaded.next(true);
+            }
+          }
+        }),
+        catchError((error) => {
+          if (effectiveLang !== this.config.defaultLanguage) {
+            return this.translateService.use(this.config.defaultLanguage).pipe(
+              take(1),
+              tap(() => {
+                const currentTranslationsFallback =
+                  this.translateService.translations[
+                    this.translateService.currentLang
+                  ];
+                if (
+                  currentTranslationsFallback &&
+                  Object.keys(currentTranslationsFallback).length > 0
+                ) {
+                  if (!this.translationsLoaded.value) {
+                    this.translationsLoaded.next(true);
+                  }
+                } else {
+                  this.translationsLoaded.next(true);
+                }
+              }),
+              catchError((fallbackError) => {
+                this.translationsLoaded.next(true);
+                return of(null);
+              })
+            );
+          } else {
+            this.translationsLoaded.next(true);
+            return of(null);
+          }
+        })
+      )
+      .subscribe();
   }
 
-  // ngOnDestroy() { // Si ce service peut être détruit, désabonnez-vous
-  //   if (this.mboxSub) {
-  //     this.mboxSub.unsubscribe();
-  //   }
-  //   if (this.langChangeSub) {
-  //     this.langChangeSub.unsubscribe();
-  //   }
-  // }
+  ngOnDestroy() {
+    if (this.mboxSub) {
+      this.mboxSub.unsubscribe();
+    }
+    if (this.langChangeSub) {
+      this.langChangeSub.unsubscribe();
+    }
+    if (this.translationChangeSub) {
+      this.translationChangeSub.unsubscribe();
+    }
+  }
 }
