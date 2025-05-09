@@ -76,15 +76,53 @@
   align-items: center;
   margin-right: 25px;
  
-
-
+  .circle-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $accent-color;
+    color: white;
+    font-size: 24px;
+   
+    &.birthday-icon::before {
+      content: "🎂";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.cashback-icon::before {
+      content: "💰";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.bonus-icon::before {
+      content: "🎮";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.gift-icon::before {
+      content: "🎁";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+   
+    &.default-icon::before {
+      content: "📋";
+      font-size: 35px;
+      margin-bottom: 7px;
+    }
+  }
+ 
+  .add-icon {
+    font-weight: bold;
+    font-size: 24px;
+  }
 }
-
-
-
-
-
-
 
 .promo-content {
   flex: 1;

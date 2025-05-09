@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslationService } from '../../services/translation.service';
 import { PromoService } from '../../services/promo.service';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import {
   MboxData,
   Promotion,
@@ -26,7 +26,6 @@ import { ErrorHandlingService } from '../../services/error-handler.service';
   styleUrls: ['./promo-list.component.scss'],
 })
 export class PromoListComponent implements OnInit {
-  translationsLoaded$: Observable<boolean>;
   promotions: Promotion[] = [];
   isCustomer = false;
   isLoading = true;
@@ -47,7 +46,6 @@ export class PromoListComponent implements OnInit {
   @ViewChild(PinCodeComponent) pinCodeComponent!: PinCodeComponent;
 
   constructor(
-    public translationService: TranslationService,
     private promoService: PromoService,
     private translate: TranslateService,
     private formatService: FormattingService,
@@ -57,9 +55,7 @@ export class PromoListComponent implements OnInit {
     private promoValidationService: PromoValidationService,
     private route: ActivatedRoute,
     private errorService: ErrorHandlingService
-  ) {
-    this.translationsLoaded$ = this.translationService.translationsLoaded$;
-  }
+  ) {}
 
   ngOnInit(): void {
     if (this.mboxData) {

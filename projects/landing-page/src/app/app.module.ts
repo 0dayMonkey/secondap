@@ -36,25 +36,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { ConfigService } from '../../../common/services/config.service';
 import { MboxInfoService } from '../../../common/services/mbox-info.service';
 import { ApiService } from '../../../common/services/api.service';
-import { Observable, of } from 'rxjs';
-import { delay, filter, take } from 'rxjs/operators';
-
-export class CustomTranslateHttpLoader extends TranslateHttpLoader {
-  constructor(http: HttpClient, prefix?: string, suffix?: string) {
-    super(http, prefix, suffix);
-  }
-
-  public override getTranslation(lang: string): Observable<any> {
-    return super.getTranslation(lang).pipe(delay(1000));
-  }
-}
 
 export function HttpLoaderFactory(http: HttpClient) {
-  return new CustomTranslateHttpLoader(http, './assets/i18n/', '.json');
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 export function appInitializerFactory(
-  translationServiceInstance: TranslationService,
+  translate: TranslateService,
   mboxInfoService: MboxInfoService,
   configService: ConfigService
 ): () => Promise<any> {
@@ -66,10 +54,7 @@ export function appInitializerFactory(
     if (!configService.supportedLanguages.includes(langToLoad)) {
       langToLoad = configService.defaultLanguage;
     }
-
-    translationServiceInstance.updateLanguage(langToLoad);
-
-    return Promise.resolve(true);
+    return translate.use(langToLoad).toPromise();
   };
 }
 
@@ -118,7 +103,7 @@ export function appInitializerFactory(
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializerFactory,
-      deps: [TranslationService, MboxInfoService, ConfigService],
+      deps: [TranslateService, MboxInfoService, ConfigService],
       multi: true,
     },
     { provide: LOCALE_ID, useValue: 'fr' },

@@ -28,10 +28,10 @@ export class MboxInfoService {
 
     if (initialMboxInfo) {
       this.setMboxData({
-        ownerId: /*initialMboxInfo.ownerId || ''*/ '111111',
+        ownerId: /*initialMboxInfo.ownerId || ''*/ '',
         twoLetterISOLanguageName:
-          /*initialMboxInfo.twoLetterISOLanguageName ||
-          this.config.defaultLanguage*/ 'zh',
+          initialMboxInfo.twoLetterISOLanguageName ||
+          this.config.defaultLanguage,
         casinoCurrencySymbol:
           initialMboxInfo.casinoCurrencySymbol ||
           this.config.defaultCurrencySymbol,

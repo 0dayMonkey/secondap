@@ -1,3 +1,4 @@
+// projects/landing-page/src/app/components/pin-code/pin-code.component.ts
 import {
   Component,
   EventEmitter,
@@ -26,7 +27,6 @@ export class PinCodeComponent implements OnInit {
   @Input() placeholderText: string = '';
   @Input() validateButtonText: string = '';
   @Input() clearButtonText: string = 'C';
-  @Input() translationsReady: boolean = false;
 
   @Output() validate = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();
@@ -73,9 +73,13 @@ export class PinCodeComponent implements OnInit {
     this.isLoading = true;
     this.validate.emit(this.voucherCode);
 
+    // On lance uniquement l'authentification du joueur
+    // La validation de la promotion se fera après succès de l'authentification
+    // via les redirections URL
     this.requestPlayerAuthentication();
   }
 
+  // Authentification du joueur uniquement
   private requestPlayerAuthentication(): void {
     const currentUrl = window.location.href.split('?')[0];
     const baseUrl = currentUrl.endsWith('/') ? currentUrl : `${currentUrl}/`;
@@ -84,6 +88,7 @@ export class PinCodeComponent implements OnInit {
     console.log('[PIN_CODE] Code PIN: ' + this.voucherCode);
 
     try {
+      // Extraire un ID de promotion du code (si possible)
       let promoId = 0;
       try {
         promoId = parseInt(this.voucherCode.replace(/-/g, ''));
@@ -92,6 +97,7 @@ export class PinCodeComponent implements OnInit {
         promoId = 0;
       }
 
+      // Préparer les URL de redirection en incluant le code promotionnel
       const authRequest: PlayerAuthRequest = {
         promoId: promoId,
         urlOnSuccess: `${baseUrl}?status=success&code=${this.voucherCode}`,
@@ -109,15 +115,17 @@ export class PinCodeComponent implements OnInit {
         urlOnError: authRequest.urlOnError,
       });
 
+      // Demande d'authentification du joueur via la MBox
       this.promoValidationService.requestPlayerAuthentication(authRequest);
 
+      // Si pour une raison quelconque la MBox ne redirige pas, on peut gérer un timeout
       setTimeout(() => {
         if (this.isLoading) {
           console.log("[PIN_CODE] Timeout de l'authentification PIN");
           this.isLoading = false;
           this.handleAuthenticationError('MBOX_TIMEOUT_ERROR');
         }
-      }, 10000);
+      }, 10000); // 10 secondes de timeout
     } catch (error) {
       console.error(
         "[PIN_CODE] Erreur lors de la demande d'authentification PIN:",
@@ -128,15 +136,18 @@ export class PinCodeComponent implements OnInit {
     }
   }
 
+  // Gestion des erreurs d'authentification MBox
   private handleAuthenticationError(errorCode: string): void {
     console.log(
       "[PIN_CODE] Gestion de l'erreur d'authentification:",
       errorCode
     );
 
+    // Utiliser le service d'erreur pour obtenir un ValidationResult standardisé
     const errorResult =
       this.promoValidationService.handleMboxAuthError(errorCode);
 
+    // Effacer le code PIN si nécessaire
     if (this.errorService.shouldClearPinCode(errorCode)) {
       this.clearCode();
     }
@@ -144,6 +155,8 @@ export class PinCodeComponent implements OnInit {
     this.exitWithConfirmation(errorResult);
   }
 
+  // Cette méthode est appelée à partir de PromoListComponent
+  // lorsque l'authentification a réussi et qu'on veut valider la promotion
   validatePromotion(promoCode: string): void {
     this.promoValidationService.validateCode(promoCode).subscribe({
       next: (result: ValidationResult) => {
@@ -151,11 +164,13 @@ export class PinCodeComponent implements OnInit {
         console.log('[PIN_CODE] Résultat de validation promotion:', result);
 
         if (result.isSuccess && result.promoId) {
+          // Promotion validée
           this.clearCode();
         } else if (
           result.errorCode &&
           this.errorService.shouldClearPinCode(result.errorCode)
         ) {
+          // Échec de validation - effacer le code si nécessaire
           console.log(
             `[PIN_CODE] Effacement du code PIN pour erreur: ${result.errorCode}`
           );
@@ -171,11 +186,14 @@ export class PinCodeComponent implements OnInit {
         );
         this.isLoading = false;
 
+        // Normaliser l'erreur et créer un ValidationResult
         let errorResult: ValidationResult;
 
         if (error && error.code) {
+          // Si l'erreur a déjà un code, utiliser directement
           errorResult = this.errorService.toValidationResult(error, false);
 
+          // Effacer le code PIN si nécessaire
           if (
             error.requirePinClear ||
             this.errorService.shouldClearPinCode(error.code)
@@ -183,6 +201,7 @@ export class PinCodeComponent implements OnInit {
             this.clearCode();
           }
         } else {
+          // Sinon, créer une erreur de type validation
           errorResult =
             this.promoValidationService.handleMboxAuthError('VALIDATION_ERROR');
           this.clearCode();
