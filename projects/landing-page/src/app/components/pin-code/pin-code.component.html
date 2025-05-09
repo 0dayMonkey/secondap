@@ -4,28 +4,37 @@
       <button class="back-button" (click)="goBack()" [title]="'PromoList.back' | translate">
         <mat-icon aria-hidden="true" class="backButtonIcon">arrow_back</mat-icon>
       </button>
-      <h2 class="title">{{ pinTitle }}</h2>
+
+      <ng-container *ngIf="translationsReady; else titleSkeleton">
+        <h2 class="title text-loaded-fade-in">{{ pinTitle }}</h2>
+      </ng-container>
+      <ng-template #titleSkeleton>
+        <h2 class="title"><span class="skeleton-text skeleton-title">&nbsp;</span></h2>
+      </ng-template>
 
       <div class="input-container">
-        <input 
-          type="text" 
-          class="code-input" 
-          [(ngModel)]="voucherCode" 
+        <input
+          type="text"
+          class="code-input"
+          [(ngModel)]="voucherCode"
           [readonly]="true"
           [placeholder]="placeholderText">
         <button *ngIf="voucherCode" class="clear-button" (click)="clearCode()">×</button>
       </div>
-      
-      <button 
-        class="validate-button" 
-        [disabled]="!isValidCode()"
-        (click)="validateCode()">
-        {{ validateButtonText }}
-      </button>
-    </div>
-    
+
+      <ng-container *ngIf="translationsReady; else buttonSkeletonFull">
+        <button
+          class="validate-button text-loaded-fade-in" [disabled]="!isValidCode()" (click)="validateCode()">
+          <span>{{ validateButtonText }}</span> </button>
+      </ng-container>
+      <ng-template #buttonSkeletonFull>
+        <div class="validate-button skeleton-button">
+          </div>
+        </ng-template>
+      </div>
+
     <div class="separator"></div>
-    
+
     <div class="right-column">
       <div class="numpad">
         <div class="numpad-row">
@@ -53,5 +62,4 @@
       </div>
     </div>
   </div>
-
 </div>
