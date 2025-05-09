@@ -36,85 +36,41 @@ import { MatIconModule } from '@angular/material/icon';
 import { ConfigService } from '../../../common/services/config.service';
 import { MboxInfoService } from '../../../common/services/mbox-info.service';
 import { ApiService } from '../../../common/services/api.service';
-import { Observable, of, lastValueFrom } from 'rxjs';
-import { delay, filter, take, switchMap, tap, map } from 'rxjs/operators';
-
-import { AppConfigService } from './services/app-config.service';
-// AppConfig sera utilisé implicitement via AppConfigService
+import { Observable, of } from 'rxjs';
+import { delay, filter, take } from 'rxjs/operators';
 
 export class CustomTranslateHttpLoader extends TranslateHttpLoader {
-  // appConfigService est injecté mais stocké pour être utilisé dans getTranslation
-  constructor(
-    public httpClient: HttpClient, // HttpClient est public dans TranslateHttpLoader, pas besoin d'override ici.
-    // Le nom du paramètre doit correspondre pour que l'injection fonctionne bien avec super.
-    private appConfigService: AppConfigService
-  ) {
-    // Appeler super() avec des valeurs par défaut ou génériques.
-    // La logique dynamique se trouvera dans getTranslation.
-    super(httpClient, './assets/i18n/', '.json');
+  constructor(http: HttpClient, prefix?: string, suffix?: string) {
+    super(http, prefix, suffix);
   }
 
   public override getTranslation(lang: string): Observable<any> {
-    let basePath = './assets/i18n/'; // Valeur par défaut
-    let suffix = '.json'; // Valeur par défaut
-    let simulatedDelay = 0; // Valeur par défaut
-
-    try {
-      // À ce stade, APP_INITIALIZER devrait avoir chargé la configuration.
-      const config = this.appConfigService.config;
-      basePath = config.localization.translationFiles.basePath;
-      suffix = config.localization.translationFiles.fileSuffix;
-      simulatedDelay = config.animations.translationLoadDelaySimulated;
-    } catch (e) {
-      console.warn(
-        "CustomTranslateHttpLoader: La configuration n'était pas prête au moment de getTranslation. Utilisation des chemins par défaut.",
-        e
-      );
-    }
-
-    // Utiliser this.httpClient qui est hérité et correctement initialisé par la classe de base.
-    const translationObs = this.httpClient.get(`${basePath}${lang}${suffix}`);
-
-    if (simulatedDelay > 0) {
-      return translationObs.pipe(delay(simulatedDelay));
-    }
-    return translationObs;
+    return super.getTranslation(lang).pipe(delay(1000));
   }
 }
 
-export function HttpLoaderFactory(
-  http: HttpClient,
-  appConfigService: AppConfigService
-) {
-  return new CustomTranslateHttpLoader(http, appConfigService);
+export function HttpLoaderFactory(http: HttpClient) {
+  return new CustomTranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
-export function initializeAppFactory(
-  appConfigService: AppConfigService,
-  translateService: TranslateService,
-  mboxInfoService: MboxInfoService
+export function appInitializerFactory(
+  translationServiceInstance: TranslationService,
+  mboxInfoService: MboxInfoService,
+  configService: ConfigService
 ): () => Promise<any> {
-  return () =>
-    lastValueFrom(
-      appConfigService.loadAppConfig().pipe(
-        switchMap((config) => {
-          translateService.setDefaultLang(config.localization.defaultLanguage);
+  return () => {
+    let langToLoad =
+      mboxInfoService.getLanguage() || configService.defaultLanguage;
+    langToLoad = langToLoad.toLowerCase();
 
-          let langToLoad =
-            mboxInfoService.getLanguage() ||
-            config.localization.defaultLanguage;
-          langToLoad = langToLoad.toLowerCase();
-          if (!config.localization.supportedLanguages.includes(langToLoad)) {
-            langToLoad = config.localization.defaultLanguage;
-          }
-          return translateService.use(langToLoad).pipe(map(() => config));
-        }),
-        tap((config) => {
-          // MboxInfoService injecte déjà AppConfigService, son constructeur aura la config.
-        }),
-        map(() => true)
-      )
-    );
+    if (!configService.supportedLanguages.includes(langToLoad)) {
+      langToLoad = configService.defaultLanguage;
+    }
+
+    translationServiceInstance.updateLanguage(langToLoad);
+
+    return Promise.resolve(true);
+  };
 }
 
 @NgModule({
@@ -134,21 +90,15 @@ export function initializeAppFactory(
     MatIconModule,
     ButtonModule,
     TranslateModule.forRoot({
+      defaultLanguage: 'en',
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
-        deps: [HttpClient, AppConfigService],
+        deps: [HttpClient],
       },
     }),
   ],
   providers: [
-    AppConfigService,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeAppFactory,
-      deps: [AppConfigService, TranslateService, MboxInfoService],
-      multi: true,
-    },
     PromoService,
     MboxInfoService,
     FormattingService,
@@ -166,19 +116,12 @@ export function initializeAppFactory(
       multi: true,
     },
     {
-      provide: LOCALE_ID,
-      useFactory: (appConfigService: AppConfigService) => {
-        try {
-          return appConfigService.config.localization.defaultLocaleId;
-        } catch (e) {
-          console.warn(
-            "LOCALE_ID factory: Config not ready, defaulting to 'en-US'."
-          );
-          return 'en-US';
-        }
-      },
-      deps: [AppConfigService],
+      provide: APP_INITIALIZER,
+      useFactory: appInitializerFactory,
+      deps: [TranslationService, MboxInfoService, ConfigService],
+      multi: true,
     },
+    { provide: LOCALE_ID, useValue: 'fr' },
   ],
   bootstrap: [AppComponent],
 })

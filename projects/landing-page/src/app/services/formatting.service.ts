@@ -3,7 +3,7 @@ import { CurrencyPipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { Promotion } from '../../../../common/models/common.models';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
-import { AppConfigService } from './app-config.service';
+import { ConfigService } from 'projects/common/services/config.service';
 
 @Injectable()
 export class FormattingService {
@@ -11,26 +11,26 @@ export class FormattingService {
     private translate: TranslateService,
     private currencyPipe: CurrencyPipe,
     private mboxService: MboxInfoService,
-    private appConfigService: AppConfigService
+    private config: ConfigService
   ) {}
 
   formatReward(promo: Promotion): string {
-    const configLoc = this.appConfigService.config.localization;
-    const configApiMap = this.appConfigService.config.apiMapping.promo;
-
-    if (promo.reward_type === configApiMap.rewardTypePoint) {
+    if (promo.reward_type === 'Point') {
       return this.translate.instant('PromoList.bonusPoints', {
         value: promo.reward_value,
       });
     } else {
       const currentLang =
-        this.translate.currentLang || configLoc.defaultLanguage;
+        this.translate.currentLang || this.config.defaultLanguage;
       const data = this.mboxService.mboxDataObject;
+      const localeMap: { [key: string]: string } = {};
+      this.config.supportedLanguages.forEach((lang) => {
+        localeMap[lang] = lang;
+      });
 
-      const locale =
-        configLoc.localeMap[currentLang] || configLoc.defaultLanguage;
+      const locale = localeMap[currentLang] || this.config.defaultLanguage;
       const currencySymbol =
-        data?.casinoCurrencySymbol || configLoc.defaultCurrencySymbol;
+        data?.casinoCurrencySymbol || this.config.defaultCurrencySymbol;
 
       try {
         const formattedAmount = this.currencyPipe.transform(
@@ -54,19 +54,13 @@ export class FormattingService {
   }
 
   getUtilisationInfo(promo: Promotion): string {
-    if (
-      !promo.utilisation ||
-      !this.appConfigService.config.features.showPromoUtilisationInfo
-    ) {
+    if (!promo.utilisation) {
       return '';
     }
 
     const { restantes, maximum } = promo.utilisation;
 
-    if (
-      maximum === 1 &&
-      this.appConfigService.config.promo.hideUsageInfoIfMaxOne
-    ) {
+    if (maximum === 1) {
       return '';
     }
 

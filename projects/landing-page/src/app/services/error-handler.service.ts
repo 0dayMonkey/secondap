@@ -1,13 +1,37 @@
+// projects/landing-page/src/app/services/error-handler.service.ts
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ValidationResult } from './promo-validation.service';
-import { AppConfigService } from './app-config.service';
-import {
-  StimErrorCode,
-  MboxErrorCode,
-  ApplicationErrorCode,
-} from '../../../../common/models/error.codes';
+
+export enum StimErrorCode {
+  STIM_INEXISTANTE = 'JOAPI_STIM_0001',
+  AUCUN_CLIENT = 'JOAPI_STIM_0002',
+  CLIENT_INTERDIT = 'JOAPI_STIM_0003',
+  STATUT_INVALIDE = 'JOAPI_STIM_0004',
+  CLOTUREE = 'JOAPI_STIM_0005',
+  NOMBRE_UTILISATION = 'JOAPI_STIM_0006',
+  PERIODE_VALIDITE = 'JOAPI_STIM_0007',
+  ETABLISSEMENT_UTILISATION = 'JOAPI_STIM_0008',
+  DELAI_UTILISATION = 'JOAPI_STIM_0009',
+  ETABLISSEMENT_UTILISATION_NULL = 'JOAPI_STIM_0011',
+  PERIODE_NULL = 'JOAPI_STIM_0012',
+  ETABLISSEMENT_CONSOMMATION_INCONNU = 'JOAPI_STIM_0013',
+  NON_HABILITE = 'JOAPI_STIM_0017',
+  API_COMMUNICATION_ERROR = 'API_COMMUNICATION_ERROR',
+}
+
+export enum MboxErrorCode {
+  MBOX_AUTH_ERROR = 'MBOX_AUTH_ERROR',
+  PIN_INVALID = 'PIN_INVALID',
+  MBOX_TIMEOUT_ERROR = 'MBOX_TIMEOUT_ERROR',
+}
+
+export enum ApplicationErrorCode {
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  APPLICATION_ERROR = 'APPLICATION_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
 
 export interface ErrorContext {
   component?: string;
@@ -19,15 +43,22 @@ export interface ErrorContext {
   providedIn: 'root',
 })
 export class ErrorHandlingService {
-  private errorCodesToClear: string[];
+  // Codes d'erreur qui nécessitent l'effacement du code PIN
+  private errorCodesToClear: string[] = [
+    StimErrorCode.CLIENT_INTERDIT,
+    StimErrorCode.STATUT_INVALIDE,
+    StimErrorCode.CLOTUREE,
+    StimErrorCode.NOMBRE_UTILISATION,
+    StimErrorCode.PERIODE_VALIDITE,
+    StimErrorCode.DELAI_UTILISATION,
+    StimErrorCode.ETABLISSEMENT_UTILISATION_NULL,
+    StimErrorCode.PERIODE_NULL,
+    StimErrorCode.ETABLISSEMENT_CONSOMMATION_INCONNU,
+    StimErrorCode.NON_HABILITE,
+    MboxErrorCode.MBOX_AUTH_ERROR,
+  ];
 
-  constructor(
-    private translate: TranslateService,
-    private appConfigService: AppConfigService
-  ) {
-    this.errorCodesToClear =
-      this.appConfigService.config.validation.promoCode.clearInputOnErrorCodes;
-  }
+  constructor(private translate: TranslateService) {}
 
   createValidationResult(
     isSuccess: boolean,
@@ -35,17 +66,17 @@ export class ErrorHandlingService {
     errorMessage?: string,
     errorCode?: string
   ): ValidationResult {
-    const errorConf = this.appConfigService.config.errorHandling;
     return {
       isSuccess,
       isMember,
       errorMessage:
-        errorMessage ||
-        this.getTranslatedErrorMessage(errorConf.defaultUnknownErrorMessageKey),
-      errorCode: errorCode || ApplicationErrorCode.UNKNOWN_ERROR,
+        errorMessage || this.getTranslatedErrorMessage('UNKNOWN_ERROR'),
+      errorCode: errorCode || 'UNKNOWN_ERROR',
     };
   }
-
+  /**
+   * Normalise une erreur HTTP
+   */
   normalizeHttpError(error: HttpErrorResponse, context?: string): any {
     const errorCode = this.extractErrorCodeFromHttpResponse(error);
     const requirePinClear = this.shouldClearPinCode(errorCode);
@@ -59,8 +90,11 @@ export class ErrorHandlingService {
     };
   }
 
+  /**
+   * Normalise une erreur MBox
+   */
   normalizeMboxError(error: any, context?: string): any {
-    let errorCode = MboxErrorCode.MBOX_AUTH_ERROR as string;
+    let errorCode = MboxErrorCode.MBOX_AUTH_ERROR;
 
     if (
       typeof error === 'string' &&
@@ -89,8 +123,11 @@ export class ErrorHandlingService {
     return result;
   }
 
+  /**
+   * Normalise une erreur d'application
+   */
   normalizeApplicationError(error: any, context?: string): any {
-    let errorCode = ApplicationErrorCode.UNKNOWN_ERROR as string;
+    let errorCode = ApplicationErrorCode.UNKNOWN_ERROR;
     let errorMessage = '';
 
     if (typeof error === 'string') {
@@ -115,6 +152,7 @@ export class ErrorHandlingService {
       errorCode = error as ApplicationErrorCode;
     }
 
+    // Si pas de message spécifique, utiliser le message traduit
     if (!errorMessage) {
       errorMessage = this.getTranslatedErrorMessage(errorCode);
     }
@@ -133,57 +171,62 @@ export class ErrorHandlingService {
     return result;
   }
 
+  /**
+   * Conversion d'une erreur standardisée en ValidationResult pour l'UI
+   */
   toValidationResult(error: any, isMember: boolean = true): ValidationResult {
-    const errorConf = this.appConfigService.config.errorHandling;
     return this.createValidationResult(
       false,
       isMember,
-      error.message ||
-        this.getTranslatedErrorMessage(errorConf.defaultUnknownErrorMessageKey),
-      error.code || ApplicationErrorCode.UNKNOWN_ERROR
+      error.message || this.getTranslatedErrorMessage('UNKNOWN_ERROR'),
+      error.code || 'UNKNOWN_ERROR'
     );
   }
 
+  /**
+   * Retourne le message d'erreur traduit
+   */
   getTranslatedErrorMessage(errorCode: string): string {
     const errorKey = `Errors.${errorCode}`;
-    const fallbackKey = `Errors.${this.appConfigService.config.errorHandling.defaultUnknownErrorMessageKey}`;
+    const fallbackKey = 'Errors.UNKNOWN_ERROR';
 
-    const translated = this.translate.instant(errorKey);
-    if (translated !== errorKey) {
-      return translated;
+    if (this.translate.instant(errorKey) !== errorKey) {
+      return this.translate.instant(errorKey);
     }
+
     return this.translate.instant(fallbackKey);
   }
 
+  /**
+   * Détermine si le code PIN doit être effacé en fonction du code d'erreur
+   */
   shouldClearPinCode(errorCode: string): boolean {
     return this.errorCodesToClear.includes(errorCode);
   }
 
+  /**
+   * Log l'erreur dans la console avec un format standardisé
+   */
   private logError(error: any): void {
-    const context =
-      error.context ||
-      this.appConfigService.config.errorHandling.contexts[5] ||
-      'UNKNOWN_CONTEXT';
+    const context = error.context || 'UNKNOWN';
     console.error(
-      `[${context}] Error (${
-        error.code || ApplicationErrorCode.UNKNOWN_ERROR
-      }): ${error.message}`,
-      error.originalError || ''
+      `[${context}] Error (${error.code}): ${error.message}`,
+      error.originalError
     );
   }
 
+  /**
+   * Extrait le code d'erreur d'une réponse HTTP
+   */
   private extractErrorCodeFromHttpResponse(error: HttpErrorResponse): string {
-    const errorConf = this.appConfigService.config.errorHandling;
-    const httpStatusMapping = errorConf.httpStatusToErrorCode.find(
-      (m) => m.status === error.status
-    );
-    if (httpStatusMapping) {
-      return httpStatusMapping.code;
+    if (error.status === 0) {
+      return StimErrorCode.API_COMMUNICATION_ERROR;
     }
 
     if (error.error && typeof error.error === 'object' && error.error.code) {
       return error.error.code;
     }
+
     if (
       error.error &&
       typeof error.error === 'object' &&
@@ -192,6 +235,7 @@ export class ErrorHandlingService {
     ) {
       return error.error.error.code;
     }
+
     if (error.error && typeof error.error === 'string') {
       try {
         const parsedError = JSON.parse(error.error);
@@ -203,26 +247,29 @@ export class ErrorHandlingService {
         }
       } catch (e) {
         const match = error.error.match(/JOAPI_STIM_\d+/);
-        if (match && match[0]) {
+        if (match) {
           return match[0];
         }
       }
     }
+
     if (error.message) {
       const match = error.message.match(/JOAPI_STIM_\d+/);
-      if (match && match[0]) {
+      if (match) {
         return match[0];
       }
     }
+
     return ApplicationErrorCode.UNKNOWN_ERROR;
   }
 
   handleApiError(error: any): string {
     if (!error.error || !error.error.code) {
       return this.getTranslatedErrorMessage(
-        this.appConfigService.config.errorHandling.defaultApiErrorMessageKey
+        StimErrorCode.API_COMMUNICATION_ERROR
       );
     }
+
     return this.getTranslatedErrorMessage(error.error.code);
   }
 }

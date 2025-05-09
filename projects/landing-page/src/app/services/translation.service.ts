@@ -5,29 +5,27 @@ import {
   TranslationChangeEvent,
 } from '@ngx-translate/core';
 import { MboxInfoService } from '../../../../common/services/mbox-info.service';
-import { AppConfigService } from './app-config.service';
-import { AppConfig } from '../models/app-config.model'; // Importation ajoutée
+import { ConfigService } from 'projects/common/services/config.service';
 import { BehaviorSubject, Observable, Subscription, of } from 'rxjs';
-import { catchError, filter, take, tap, switchMap } from 'rxjs/operators';
+import { catchError, filter, take, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TranslationService implements OnDestroy {
-  private mboxSub: Subscription | undefined;
-  private langChangeSub: Subscription | undefined;
-  private translationChangeSub: Subscription | undefined;
+  private mboxSub: Subscription;
+  private langChangeSub: Subscription;
+  private translationChangeSub: Subscription;
   private readonly translationsLoaded = new BehaviorSubject<boolean>(false);
   public readonly translationsLoaded$: Observable<boolean> =
     this.translationsLoaded.asObservable();
-  private currentAppConfig: AppConfig;
 
   constructor(
     private translateService: TranslateService,
     private mboxInfoService: MboxInfoService,
-    private appConfigService: AppConfigService
+    private config: ConfigService
   ) {
-    this.currentAppConfig = this.appConfigService.config;
+    this.translateService.setDefaultLang(this.config.defaultLanguage);
 
     this.translationChangeSub =
       this.translateService.onTranslationChange.subscribe(
@@ -56,33 +54,18 @@ export class TranslationService implements OnDestroy {
       .subscribe((data) => {
         this.updateLanguage(data.twoLetterISOLanguageName);
       });
-
-    if (
-      this.translateService.currentLang &&
-      this.translateService.translations[this.translateService.currentLang] &&
-      Object.keys(
-        this.translateService.translations[this.translateService.currentLang]
-      ).length > 0
-    ) {
-      this.translationsLoaded.next(true);
-    } else if (this.translateService.currentLang) {
-      // Si currentLang est défini mais pas de traductions, on attend onTranslationChange
-      this.translationsLoaded.next(false);
-    }
   }
 
   public updateLanguage(lang?: string): void {
-    const configLoc = this.currentAppConfig.localization;
     this.translationsLoaded.next(false);
-
     const languageToUse = (
       lang ||
       this.mboxInfoService.getLanguage() ||
-      configLoc.defaultLanguage
+      this.config.defaultLanguage
     ).toLowerCase();
 
-    let effectiveLang = configLoc.defaultLanguage;
-    if (configLoc.supportedLanguages.includes(languageToUse)) {
+    let effectiveLang = this.config.defaultLanguage;
+    if (this.config.supportedLanguages.includes(languageToUse)) {
       effectiveLang = languageToUse;
     }
 
@@ -90,19 +73,41 @@ export class TranslationService implements OnDestroy {
       .use(effectiveLang)
       .pipe(
         take(1),
+        tap(() => {
+          const currentTranslations =
+            this.translateService.translations[
+              this.translateService.currentLang
+            ];
+          if (
+            currentTranslations &&
+            Object.keys(currentTranslations).length > 0
+          ) {
+            if (!this.translationsLoaded.value) {
+              this.translationsLoaded.next(true);
+            }
+          }
+        }),
         catchError((error) => {
-          console.warn(
-            `Failed to load translations for ${effectiveLang}, falling back to ${configLoc.defaultLanguage}`,
-            error
-          );
-          if (effectiveLang !== configLoc.defaultLanguage) {
-            return this.translateService.use(configLoc.defaultLanguage).pipe(
+          if (effectiveLang !== this.config.defaultLanguage) {
+            return this.translateService.use(this.config.defaultLanguage).pipe(
               take(1),
+              tap(() => {
+                const currentTranslationsFallback =
+                  this.translateService.translations[
+                    this.translateService.currentLang
+                  ];
+                if (
+                  currentTranslationsFallback &&
+                  Object.keys(currentTranslationsFallback).length > 0
+                ) {
+                  if (!this.translationsLoaded.value) {
+                    this.translationsLoaded.next(true);
+                  }
+                } else {
+                  this.translationsLoaded.next(true);
+                }
+              }),
               catchError((fallbackError) => {
-                console.error(
-                  `Failed to load fallback translations for ${configLoc.defaultLanguage}`,
-                  fallbackError
-                );
                 this.translationsLoaded.next(true);
                 return of(null);
               })
