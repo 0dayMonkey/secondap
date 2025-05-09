@@ -1,52 +1,80 @@
 import { Injectable } from '@angular/core';
+import { AppConfigService } from '../../landing-page/src/app/services/app-config.service';
+import { AppConfig } from '../../landing-page/src/app/models/app-config.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigService {
-  // readonly apiBaseUrl: string = 'https://recette-api.joa.fr/v1';
-  readonly apiBaseUrl: string = 'http://localhost:3000/v1';
+  constructor(private appConfigService: AppConfigService) {}
 
-  // ms
-  readonly itemAnimationDelay: number = 50;
-  readonly returnAnimationDelay: number = 10;
-  readonly finalAnimationDelay: number = 400;
-  readonly viewTransitionDelay: number = 350;
-  readonly maxVisibleItemsForAnimation: number = 5;
-  readonly clickAnimationDuration: number = 700;
+  private get c(): AppConfig {
+    return this.appConfigService.config;
+  }
 
-  readonly supportedLanguages: string[] = [
-    'fr',
-    'en',
-    'bg',
-    'de',
-    'es',
-    'it',
-    'ja',
-    'ko',
-    'ru',
-    'zh',
-  ];
-  readonly defaultLanguage: string = 'en';
-  readonly defaultCurrencySymbol: string = '€';
+  get apiBaseUrl(): string {
+    return this.c.api.baseUrl;
+  }
 
-  readonly validCodePattern: RegExp = /^\w{2}-\w{4}-\w{4}-\w{4}-\w{4}$/;
+  get itemAnimationDelay(): number {
+    return this.c.animations.itemDelay;
+  }
+
+  get returnAnimationDelay(): number {
+    return this.c.animations.returnItemDelay;
+  }
+
+  get finalAnimationDelay(): number {
+    return this.c.animations.cascadeEndDelay;
+  }
+
+  get viewTransitionDelay(): number {
+    return this.c.animations.viewTransitionDuration;
+  }
+
+  get maxVisibleItemsForAnimation(): number {
+    return this.c.animations.maxVisibleItemsForCascade;
+  }
+
+  get clickAnimationDuration(): number {
+    return this.c.animations.clickFeedbackDuration;
+  }
+
+  get supportedLanguages(): string[] {
+    return this.c.localization.supportedLanguages;
+  }
+
+  get defaultLanguage(): string {
+    return this.c.localization.defaultLanguage;
+  }
+
+  get defaultCurrencySymbol(): string {
+    return this.c.localization.defaultCurrencySymbol;
+  }
+
+  get validCodePattern(): RegExp {
+    return new RegExp(this.c.validation.promoCode.pattern);
+  }
 
   getAPIPlayerStatusUrl(playerId: string): string {
-    // todo : verification du joueur
-
-    return `${this.apiBaseUrl}/player/${playerId}/status`;
+    const endpoint = this.c.api.endpoints.playerStatus;
+    return `${this.apiBaseUrl}${endpoint.replace('{playerId}', playerId)}`;
   }
 
   getAPIPlayerPromosUrl(playerId: string): string {
-    return `${this.apiBaseUrl}/crm/selligent/personne/${playerId}/stim`;
+    const endpoint = this.c.api.endpoints.playerPromos;
+    return `${this.apiBaseUrl}${endpoint.replace('{playerId}', playerId)}`;
   }
 
   getAPIPromoUseUrl(promoId: number): string {
-    return `${this.apiBaseUrl}/stim/${promoId}/use`;
+    const endpoint = this.c.api.endpoints.usePromo;
+    return `${this.apiBaseUrl}${endpoint.replace(
+      '{promoId}',
+      String(promoId)
+    )}`;
   }
 
   getAPIPromoValidateUrl(): string {
-    return `${this.apiBaseUrl}/stim/validate`;
+    return `${this.apiBaseUrl}${this.c.api.endpoints.validatePromo}`;
   }
 }

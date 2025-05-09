@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { ConfigService } from 'projects/common/services/config.service';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class PinCodeService {
-  constructor(private config: ConfigService) {}
+  constructor(private appConfigService: AppConfigService) {}
 
   formatVoucherCode(input: string): string {
     let code = input.replace(/-/g, '').toUpperCase();
@@ -41,11 +41,13 @@ export class PinCodeService {
         code = code.substring(0, 22);
       }
     }
-
     return code;
   }
 
   isValidCode(code: string): boolean {
-    return this.config.validCodePattern.test(code);
+    const pattern = new RegExp(
+      this.appConfigService.config.validation.promoCode.pattern
+    );
+    return pattern.test(code);
   }
 }

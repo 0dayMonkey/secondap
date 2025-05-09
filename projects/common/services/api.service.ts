@@ -9,7 +9,7 @@ import {
   Promotion,
   Stim,
 } from '../models/common.models';
-import { ErrorSource, StandardizedError } from '../models/error.models';
+import { AppConfigService } from '../../landing-page/src/app/services/app-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,43 +18,59 @@ export class ApiService {
   constructor(
     private http: HttpClient,
     private mboxService: MboxInfoService,
-    private config: ConfigService
+    private configService: ConfigService,
+    private appConfigService: AppConfigService
   ) {}
+
+  private getDeepValue(obj: any, path: string): any {
+    return path.split('.').reduce((o, k) => (o || {})[k], obj);
+  }
 
   getPlayerPromos(): Observable<PromoResponse> {
     const playerId = this.mboxService.getPlayerId();
     return this.http
-      .get<Stim[]>(this.config.getAPIPlayerPromosUrl(playerId))
+      .get<Stim[]>(this.configService.getAPIPlayerPromosUrl(playerId))
       .pipe(
         map((stims) => this.mapStimsToPromotions(stims)),
         catchError((error: HttpErrorResponse) => {
-          console.error(
-            'Erreur lors de la récupération des promotions:',
-            error
-          );
           return throwError(() => error);
         })
       );
   }
 
   private mapStimsToPromotions(stims: Stim[]): PromoResponse {
+    const mapping = this.appConfigService.config.apiMapping.stimToPromotion;
+    const promoConfig = this.appConfigService.config.apiMapping.promo;
+
     const promotions = stims
-      .filter((stim) => stim.statut === 'To Do')
+      .filter((stim) => stim.statut === promoConfig.statusToDo)
       .map((stim) => {
         const reward_type: 'Point' | 'Montant' =
-          stim.typePromo === 'Point' ? 'Point' : 'Montant';
+          this.getDeepValue(stim, mapping.rewardTypeField) ===
+          promoConfig.rewardTypePoint
+            ? (promoConfig.rewardTypePoint as 'Point')
+            : (promoConfig.rewardTypeAmount as 'Montant');
+
+        let title = promoConfig.defaultTitle;
+        for (const field of mapping.titleFields) {
+          const val = this.getDeepValue(stim, field);
+          if (val) {
+            title = val;
+            break;
+          }
+        }
 
         return {
-          id: stim.identifiantStim,
-          code: stim.identifiantStim.toString(),
-          title: stim.sujet || stim.commentaire || 'Promotion sans titre',
+          id: this.getDeepValue(stim, mapping.idField),
+          code: String(this.getDeepValue(stim, mapping.codeField)),
+          title: title,
           reward_type: reward_type,
-          reward_value: stim.valeurPromo,
-          promo_type: stim.type,
+          reward_value: this.getDeepValue(stim, mapping.rewardValueField),
+          promo_type: this.getDeepValue(stim, mapping.promoTypeField),
           utilisation: {
-            effectuees: stim.utilisation.effectuees,
-            maximum: stim.utilisation.maximum,
-            restantes: stim.utilisation.restantes,
+            effectuees: this.getDeepValue(stim, mapping.usageEffectueesField),
+            maximum: this.getDeepValue(stim, mapping.usageMaximumField),
+            restantes: this.getDeepValue(stim, mapping.usageRestantesField),
           },
         };
       });
@@ -68,13 +84,9 @@ export class ApiService {
   checkPlayerStatus(): Observable<PlayerStatus> {
     const playerId = this.mboxService.getPlayerId();
     return this.http
-      .get<PlayerStatus>(this.config.getAPIPlayerStatusUrl(playerId))
+      .get<PlayerStatus>(this.configService.getAPIPlayerStatusUrl(playerId))
       .pipe(
         catchError((error: HttpErrorResponse) => {
-          console.error(
-            'Erreur lors de la vérification du statut du joueur:',
-            error
-          );
           return throwError(() => error);
         })
       );
@@ -86,10 +98,9 @@ export class ApiService {
     return this.http
       .put<{
         message: string;
-      }>(this.config.getAPIPromoUseUrl(promoId), {})
+      }>(this.configService.getAPIPromoUseUrl(promoId), {})
       .pipe(
         catchError((error: HttpErrorResponse) => {
-          console.error("Erreur lors de l'utilisation de la promotion:", error);
           return throwError(() => error);
         })
       );
@@ -106,13 +117,12 @@ export class ApiService {
         valid: boolean;
         message: string;
         promo?: Promotion;
-      }>(this.config.getAPIPromoValidateUrl(), {
+      }>(this.configService.getAPIPromoValidateUrl(), {
         code,
         playerId,
       })
       .pipe(
         catchError((error: HttpErrorResponse) => {
-          console.error('Erreur lors de la validation du code promo:', error);
           return throwError(() => error);
         })
       );

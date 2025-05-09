@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { ConfigService } from 'projects/common/services/config.service';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class AnimationService {
   private animationStarted = false;
   private animatedItems: boolean[] = [];
 
-  constructor(private config: ConfigService) {}
+  constructor(private appConfigService: AppConfigService) {}
 
   animateItem(index: number): boolean {
     return this.animatedItems[index] === true;
@@ -16,17 +16,16 @@ export class AnimationService {
     if (this.animationStarted) {
       return Promise.resolve(0);
     }
+    const animConfig = this.appConfigService.config.animations;
 
     return new Promise((resolve) => {
       this.animationStarted = true;
       this.animatedItems = [];
 
-      const maxVisibleItems = this.config.maxVisibleItemsForAnimation;
-
+      const maxVisibleItems = animConfig.maxVisibleItemsForCascade;
       const totalItems = 1 + itemCount;
-
       const itemsToAnimateIndividually =
-        Math.min(totalItems - 1, maxVisibleItems) + 1; // +1 pour le bouton
+        Math.min(totalItems - 1, maxVisibleItems) + 1;
 
       for (let i = 0; i < totalItems; i++) {
         if (i >= itemsToAnimateIndividually) {
@@ -39,20 +38,20 @@ export class AnimationService {
       for (let i = 0; i < itemsToAnimateIndividually; i++) {
         setTimeout(() => {
           this.animatedItems[i] = true;
-
           if (i === itemsToAnimateIndividually - 1) {
             resolve(itemsToAnimateIndividually);
           }
-        }, i * this.config.itemAnimationDelay);
+        }, i * animConfig.itemDelay);
       }
     });
   }
 
   startReverseCascadeAnimation(itemCount: number): Promise<number> {
+    const animConfig = this.appConfigService.config.animations;
     return new Promise((resolve) => {
       this.animatedItems = [];
 
-      const maxVisibleItems = this.config.maxVisibleItemsForAnimation;
+      const maxVisibleItems = animConfig.maxVisibleItemsForCascade;
       const totalItems = 1 + itemCount;
       const itemsToAnimateIndividually =
         Math.min(totalItems - 1, maxVisibleItems) + 1;
@@ -67,7 +66,7 @@ export class AnimationService {
             this.animationStarted = false;
             resolve(itemsToAnimateIndividually);
           }
-        }, i * this.config.returnAnimationDelay);
+        }, i * animConfig.returnItemDelay);
       }
     });
   }
@@ -79,9 +78,8 @@ export class AnimationService {
 
   applyClickAnimation(element: HTMLElement): void {
     element.classList.add('animating');
-
     setTimeout(() => {
       element.classList.remove('animating');
-    }, this.config.clickAnimationDuration);
+    }, this.appConfigService.config.animations.clickFeedbackDuration);
   }
 }

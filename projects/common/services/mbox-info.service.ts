@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ConfigService } from './config.service';
-import { MboxData, MboxInfo } from '../models/common.models';
+import { MboxData } from '../models/common.models';
 import { onMboxDataMessage, GetInitialMboxInfo } from 'mbox-opencontent-sdk';
+import { AppConfigService } from '../../landing-page/src/app/services/app-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,26 +19,34 @@ export class MboxInfoService {
   private mboxDataSubject = new BehaviorSubject<MboxData>(this.mboxDataObject);
   public mboxData$: Observable<MboxData> = this.mboxDataSubject.asObservable();
 
-  constructor(private config: ConfigService) {
+  constructor(private appConfigService: AppConfigService) {
     this.initializeMboxData();
   }
 
   private initializeMboxData(): void {
     const initialMboxInfo = GetInitialMboxInfo();
+    const configLoc = this.appConfigService.config.localization;
+    const configMboxInitial = this.appConfigService.config.mbox.initialData;
 
     if (initialMboxInfo) {
       this.setMboxData({
-        ownerId: /*initialMboxInfo.ownerId || ''*/ '',
+        ownerId: initialMboxInfo.ownerId || configMboxInitial.ownerId,
         twoLetterISOLanguageName:
-          initialMboxInfo.twoLetterISOLanguageName ||
-          this.config.defaultLanguage,
+          initialMboxInfo.twoLetterISOLanguageName || configLoc.defaultLanguage,
         casinoCurrencySymbol:
           initialMboxInfo.casinoCurrencySymbol ||
-          this.config.defaultCurrencySymbol,
-        egmCode: initialMboxInfo.egmCode || '',
-        casinoId: initialMboxInfo.casinoId || '',
+          configLoc.defaultCurrencySymbol,
+        egmCode: initialMboxInfo.egmCode || configMboxInitial.egmCode,
+        casinoId: initialMboxInfo.casinoId || configMboxInitial.casinoId,
       });
     } else {
+      this.setMboxData({
+        ownerId: configMboxInitial.ownerId,
+        twoLetterISOLanguageName: configLoc.defaultLanguage,
+        casinoCurrencySymbol: configLoc.defaultCurrencySymbol,
+        egmCode: configMboxInitial.egmCode,
+        casinoId: configMboxInitial.casinoId,
+      });
     }
 
     onMboxDataMessage((data: MboxData) => {
@@ -74,7 +82,7 @@ export class MboxInfoService {
   getCurrencySymbol(): string {
     return (
       this.mboxDataObject.casinoCurrencySymbol ||
-      this.config.defaultCurrencySymbol
+      this.appConfigService.config.localization.defaultCurrencySymbol
     );
   }
 
